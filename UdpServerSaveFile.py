@@ -3,7 +3,7 @@ import multiprocessing as mp
 from CONST import COM_SAVE_PROC_STOP
 from UdpServer import UdpServer
 from lib.multp import start_process
-from lib.fs import save_object_to_file, count_files_in_directory
+from lib.fs import save_object_to_file, count_files_in_directory,ensure_path_exists
 
 
 class UdpServerSaveFile(UdpServer):
@@ -19,8 +19,9 @@ class UdpServerSaveFile(UdpServer):
         # 保存プロセスとやり取りするために使用
         self._msg_q = mp.Queue()
 
-    def change_save_dir(self, dir: str):
-        self._path_q.put(dir)
+    def change_save_dir(self, save_dir: str):
+        ensure_path_exists(save_dir)
+        self._path_q.put(save_dir)
 
     def main(self):
         # パケットを貯めるリスト

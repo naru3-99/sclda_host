@@ -16,14 +16,19 @@ PIDPPID_PORT = 15001
 SYSCALL_BASEPORT = 15002
 PORT_NUMBER = 8
 
+## Guest OSの全自動システムからくる情報を取得する
+GUESTOS_PORT = 14999
+
 # パケットの大きさに関するバッファサイズ
 # see sclda/linux_6.1_mod/include/net/sclda.h
 PIDPPID_BUFSIZE = 80
 SYSCALL_BUFSIZE = 1200
+GUESTOS_BUFSIZE = 200
 
 # パケットを何個単位で保存するか
 PIDPPID_SAVESIZE = 100
 SYSCALL_SAVESIZE = 1000
+GUESTOS_SAVESIZE = 50
 
 #sshするために必要な情報
 SSH_USERNAME = "naru3"

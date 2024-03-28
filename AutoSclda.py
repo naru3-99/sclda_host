@@ -10,11 +10,14 @@ from CONST import (
     PIDPPID_PORT,
     SYSCALL_BASEPORT,
     PORT_NUMBER,
+    GUESTOS_PORT,
     PIDPPID_BUFSIZE,
     SYSCALL_BUFSIZE,
+    GUESTOS_BUFSIZE,
     DEFAULT_SERVER_TIMEOUT,
     PIDPPID_SAVESIZE,
     SYSCALL_SAVESIZE,
+    GUESTOS_SAVESIZE,
     SSH_USERNAME,
     SSH_HOST,
     SSH_KEY,
@@ -35,13 +38,6 @@ from lib.SSHOperator import SSHOperator
 
 def main():
     # init servers
-    pidppid_server = UdpServerSaveFile(
-        SERVER_HOST,
-        PIDPPID_PORT,
-        PIDPPID_BUFSIZE,
-        DEFAULT_SERVER_TIMEOUT,
-        PIDPPID_SAVESIZE,
-    )
     syscall_server_ls = [
         UdpServerSaveFile(
             SERVER_HOST,
@@ -52,7 +48,22 @@ def main():
         )
         for i in range(PORT_NUMBER)
     ]
+    guestos_server = UdpServerSaveFile(
+        SERVER_HOST,
+        GUESTOS_PORT,
+        GUESTOS_BUFSIZE,
+        DEFAULT_SERVER_TIMEOUT,
+        GUESTOS_SAVESIZE,
+    )
+    pidppid_server = UdpServerSaveFile(
+        SERVER_HOST,
+        PIDPPID_PORT,
+        PIDPPID_BUFSIZE,
+        DEFAULT_SERVER_TIMEOUT,
+        PIDPPID_SAVESIZE,
+    )
     process_ls = [start_process(server.main) for server in syscall_server_ls]
+    process_ls.append(start_process(guestos_server.main))
     process_ls.append(start_process(pidppid_server.main))
 
     # init logger
@@ -66,6 +77,7 @@ def main():
         # 1. serverに保存先変更を伝える
         for i, server in enumerate(syscall_server_ls):
             server.change_save_dir(f"./{zipname}/syscall{i}/")
+        guestos_server.change_save_dir(f"./{zipname}/guestos/")
         pidppid_server.change_save_dir(f"./{zipname}/pidppid/")
 
         # 2. guest osのsct_debianにssh接続を確立
