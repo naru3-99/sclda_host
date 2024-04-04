@@ -40,7 +40,7 @@ class UdpServerSaveFile(UdpServer):
                     save_dir = self._path_q.get()
 
                 # パケットを取得し、バッファにぶち込む
-                msg = self.receive_udp_packet(1)
+                msg = self.receive_udp_packet()
                 if msg is None:
                     continue
                 msgs_ls.append(msg)

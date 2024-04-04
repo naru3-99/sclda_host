@@ -53,3 +53,16 @@ class UdpServer:
             return rcv_data
         except:
             return None
+
+
+if __name__ == "__main__":
+    import CONST
+
+    server = UdpServer(
+        CONST.SERVER_HOST,
+        CONST.PIDPPID_PORT,
+        CONST.PIDPPID_BUFSIZE,
+        CONST.DEFAULT_SERVER_TIMEOUT,
+    )
+    while True:
+        print(server.receive_udp_packet())
