@@ -1,9 +1,10 @@
 import multiprocessing as mp
+import time
 
 from CONST import COM_SAVE_PROC_STOP
 from UdpServer import UdpServer
 from lib.multp import start_process
-from lib.fs import save_object_to_file, count_files_in_directory,ensure_path_exists
+from lib.fs import save_object_to_file, count_files_in_directory, ensure_path_exists
 
 
 class UdpServerSaveFile(UdpServer):
@@ -28,6 +29,9 @@ class UdpServerSaveFile(UdpServer):
         msgs_ls = []
         # パケットを保存するディレクトリ
         save_dir = None
+        while self._path_q.empty():
+            time.sleep(1)
+
         # 保存プロセスを起動
         start_process(save_proccess, self._msg_q)
 
@@ -68,3 +72,40 @@ def save_proccess(queue: mp.Queue) -> None:
         save_dir, packet_ls = item
         count = count_files_in_directory(save_dir)
         save_object_to_file(packet_ls, f"{save_dir}{count}.pickle")
+
+
+if __name__ == "__main__":
+    # init servers
+    from CONST import *
+
+    syscall_server_ls = [
+        UdpServerSaveFile(
+            SERVER_HOST,
+            SYSCALL_BASEPORT + i,
+            SYSCALL_BUFSIZE,
+            DEFAULT_SERVER_TIMEOUT,
+            SYSCALL_SAVESIZE,
+        )
+        for i in range(PORT_NUMBER)
+    ]
+    guestos_server = UdpServerSaveFile(
+        SERVER_HOST,
+        GUESTOS_PORT,
+        GUESTOS_BUFSIZE,
+        DEFAULT_SERVER_TIMEOUT,
+        GUESTOS_SAVESIZE,
+    )
+    pidppid_server = UdpServerSaveFile(
+        SERVER_HOST,
+        PIDPPID_PORT,
+        PIDPPID_BUFSIZE,
+        DEFAULT_SERVER_TIMEOUT,
+        PIDPPID_SAVESIZE,
+    )
+    process_ls = [start_process(server.main) for server in syscall_server_ls]
+    process_ls.append(start_process(guestos_server.main))
+    process_ls.append(start_process(pidppid_server.main))
+
+    for i, s in enumerate(syscall_server_ls):
+        s.change_save_dir(f"{i}")
+    pidppid_server.change_save_dir('PID')
