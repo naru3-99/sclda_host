@@ -28,9 +28,9 @@ class UdpServerSaveFile(UdpServer):
         # パケットを貯めるリスト
         msgs_ls = []
         # パケットを保存するディレクトリ
-        save_dir = None
         while self._path_q.empty():
             time.sleep(1)
+        save_dir = self._path_q.get()
 
         # 保存プロセスを起動
         start_process(save_proccess, self._msg_q)
@@ -107,5 +107,5 @@ if __name__ == "__main__":
     process_ls.append(start_process(pidppid_server.main))
 
     for i, s in enumerate(syscall_server_ls):
-        s.change_save_dir(f"{i}")
-    pidppid_server.change_save_dir('PID')
+        s.change_save_dir(f"./{i}/")
+    pidppid_server.change_save_dir("./PID/")
