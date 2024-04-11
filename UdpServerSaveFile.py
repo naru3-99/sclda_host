@@ -88,13 +88,13 @@ if __name__ == "__main__":
         )
         for i in range(PORT_NUMBER)
     ]
-    guestos_server = UdpServerSaveFile(
-        SERVER_HOST,
-        GUESTOS_PORT,
-        GUESTOS_BUFSIZE,
-        DEFAULT_SERVER_TIMEOUT,
-        GUESTOS_SAVESIZE,
-    )
+    # guestos_server = UdpServerSaveFile(
+    #     SERVER_HOST,
+    #     GUESTOS_PORT,
+    #     GUESTOS_BUFSIZE,
+    #     DEFAULT_SERVER_TIMEOUT,
+    #     GUESTOS_SAVESIZE,
+    # )
     pidppid_server = UdpServerSaveFile(
         SERVER_HOST,
         PIDPPID_PORT,
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         PIDPPID_SAVESIZE,
     )
     process_ls = [start_process(server.main) for server in syscall_server_ls]
-    process_ls.append(start_process(guestos_server.main))
+    # process_ls.append(start_process(guestos_server.main))
     process_ls.append(start_process(pidppid_server.main))
 
     for i, s in enumerate(syscall_server_ls):
