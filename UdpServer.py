@@ -57,6 +57,7 @@ class UdpServer:
 
 if __name__ == "__main__":
     import CONST
+    from lib.fs import save_str_to_file, append_str_to_file
 
     server = UdpServer(
         CONST.SERVER_HOST,
@@ -64,5 +65,12 @@ if __name__ == "__main__":
         CONST.PIDPPID_BUFSIZE,
         CONST.DEFAULT_SERVER_TIMEOUT,
     )
+    save_fname = "./log.csv"
+    save_str_to_file("", save_fname)
     while True:
-        print(server.receive_udp_packet())
+        msg = server.receive_udp_packet()
+        if msg == None:
+            continue
+        append_str_to_file(
+            ",".join([str(s) for s in msg.split(b"\x05")]) + "\n", save_fname
+        )
