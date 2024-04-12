@@ -1,9 +1,3 @@
-# for UdpServerSaveFile
-# サーバから保存するプロセスに終了を告げるコマンド
-COM_SAVE_PROC_STOP = "\x02STOP\x03"
-
-
-
 # for AutoSclda
 # hostのアドレス
 SERVER_HOST = "192.168.56.1"
@@ -30,7 +24,7 @@ PIDPPID_SAVESIZE = 100
 SYSCALL_SAVESIZE = 1000
 GUESTOS_SAVESIZE = 50
 
-#sshするために必要な情報
+# sshするために必要な情報
 SSH_USERNAME = "naru3"
 SSH_HOST = "127.0.0.1"
 SSH_PASSWORD = "1234567890"
@@ -50,4 +44,4 @@ AUTODA_TIMEOUT = 100
 # zip file for host os
 ZIP_FILES_PATH = "./zipfiles/"
 # logを保存するパス
-LOG_PATH = './log.txt'
+LOG_PATH = "./log.txt"

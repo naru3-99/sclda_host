@@ -1,10 +1,11 @@
 import multiprocessing as mp
 import time
 
-from CONST import COM_SAVE_PROC_STOP
 from UdpServer import UdpServer
 from lib.multp import start_process
 from lib.fs import save_object_to_file, count_files_in_directory, ensure_path_exists
+
+COM_SAVE_PROC_STOP = "\x02STOP\x03"
 
 
 class UdpServerSaveFile(UdpServer):
