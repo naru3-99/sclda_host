@@ -79,6 +79,7 @@ if __name__ == "__main__":
     # init servers
     from CONST import *
 
+    # servers
     syscall_server_ls = [
         UdpServerSaveFile(
             SERVER_HOST,
@@ -96,13 +97,12 @@ if __name__ == "__main__":
         DEFAULT_SERVER_TIMEOUT,
         PIDPPID_SAVESIZE,
     )
-    process_ls = []
-    for s in syscall_server_ls:
-        p = start_process(s.main)
-        process_ls.append(s)
-        time.sleep(0.5)
-    process_ls.append(start_process(pidppid_server.main))
 
     for i, s in enumerate(syscall_server_ls):
-        s.change_save_dir(f"./test/{i}/")
-    pidppid_server.change_save_dir("./test/PID/")
+        s.change_save_dir(f"{INPUT_DIR}{i}/")
+    pidppid_server.change_save_dir(f"{INPUT_DIR}PID/")
+
+    for server in syscall_server_ls:
+        start_process(server.main)
+        time.sleep(0.5)
+    start_process(pidppid_server.main)
