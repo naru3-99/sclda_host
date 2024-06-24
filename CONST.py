@@ -36,12 +36,15 @@ AUTODA_TIMEOUT = 100
 ZIP_FILES_PATH = "./zipfiles/"
 # logを保存するパス
 LOG_PATH = "./log.txt"
+# serverを開始するまでのラグ
+TIME_TO_WAIT_INIT = 0.3
 
 # process_data.py
 # 入力のパス
+HANDSHAKE = "sclda\\x00"
 INPUT_DIR = "./input/"
-SYSCALL_INPUTPATH = f"{INPUT_DIR}syscall.csv"
-PID_INPUTPATH = f"{INPUT_DIR}pid.csv"
-SYSCALL_INFO_PATH = f"{INPUT_DIR}syscall_info.csv"
+INPUT_PID_DIR = f"{INPUT_DIR}PID/"
+
 # 出力するパス
 OUTPUT_DIR = "./output/"
+PID_OUTPUT_PATH = f"{OUTPUT_DIR}pid.csv"

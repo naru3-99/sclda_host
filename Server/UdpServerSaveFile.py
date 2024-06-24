@@ -1,7 +1,7 @@
 import multiprocessing as mp
 import time
 
-from UdpServer import UdpServer
+from Server.UdpServer import UdpServer
 from lib.multp import start_process
 from lib.fs import save_object_to_file, count_files_in_directory, ensure_path_exists
 
@@ -75,34 +75,3 @@ def save_proccess(queue: mp.Queue) -> None:
         save_object_to_file(packet_ls, f"{save_dir}{count}.pickle")
 
 
-if __name__ == "__main__":
-    # init servers
-    from CONST import *
-
-    # servers
-    syscall_server_ls = [
-        UdpServerSaveFile(
-            SERVER_HOST,
-            SYSCALL_BASEPORT + i,
-            SYSCALL_BUFSIZE,
-            DEFAULT_SERVER_TIMEOUT,
-            SYSCALL_SAVESIZE,
-        )
-        for i in range(PORT_NUMBER)
-    ]
-    pidppid_server = UdpServerSaveFile(
-        SERVER_HOST,
-        PIDPPID_PORT,
-        PIDPPID_BUFSIZE,
-        DEFAULT_SERVER_TIMEOUT,
-        PIDPPID_SAVESIZE,
-    )
-
-    for i, s in enumerate(syscall_server_ls):
-        s.change_save_dir(f"{INPUT_DIR}{i}/")
-    pidppid_server.change_save_dir(f"{INPUT_DIR}PID/")
-
-    for server in syscall_server_ls:
-        start_process(server.main)
-        time.sleep(0.5)
-    start_process(pidppid_server.main)
