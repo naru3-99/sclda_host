@@ -34,7 +34,10 @@ def process_pid(new_path_ls):
         for msg in load_object_from_file(filepath):
             new_info_ls.append(
                 "\t".join(
-                    [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
+                    [
+                        s.decode("ISO-8859-1", errors="replace")
+                        for s in msg.split(b"\x05")
+                    ]
                 )
             )
     if HANDSHAKE in new_info_ls:
@@ -57,7 +60,9 @@ def process_syscall(new_path_ls):
     pid__clock_scid__dict = {}
     for path in new_path_ls:
         for msg in load_object_from_file(path):
-            temp_ls = [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
+            temp_ls = [
+                s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")
+            ]
             # pid,clock,scid,retval,...なはずなので、
             # 2未満の長さならパケット破棄
             if len(temp_ls) <= 2:
