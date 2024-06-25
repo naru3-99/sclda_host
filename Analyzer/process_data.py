@@ -59,22 +59,22 @@ def process_syscall(new_path_ls):
         for msg in load_object_from_file(path):
             temp_ls = [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
             # pid,clock,scid,retval,...なはずなので、
-            # 3未満の長さならパケット破棄
-            if len(temp_ls) <= 3:
+            # 2未満の長さならパケット破棄
+            if len(temp_ls) <= 2:
                 continue
             pid = temp_ls[0]
             clock = temp_ls[1]
-            scid = temp_ls[2]
-            other = "\t".join(temp_ls[3:])
+            if temp_ls[2] in id_name_dict.keys():
+                scname = "\t" + id_name_dict[temp_ls[2]]
+            else:
+                scname = ""
+            other = "\t".join(temp_ls[2:])
 
-            if not (scid in id_name_dict.keys()):
-                print(clock, pid, scid, other)
-                continue
             if not (pid in pid__clock_scid__dict.keys()):
                 pid__clock_scid__dict[pid] = {}
             if not (clock in pid__clock_scid__dict[pid].keys()):
-                pid__clock_scid__dict[pid][clock] = []
-            pid__clock_scid__dict[pid][clock].append(id_name_dict[scid] + "\t" + other)
+                pid__clock_scid__dict[pid][clock] = ""
+            pid__clock_scid__dict[pid][clock] += scname + "\t" + other
 
     for pid in pid__clock_scid__dict.keys():
         save_file_path = f"{OUTPUT_DIR}{pid}.csv"
