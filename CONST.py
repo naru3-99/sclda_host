@@ -41,7 +41,7 @@ TIME_TO_WAIT_INIT = 0.3
 
 # process_data.py
 # 入力のパス
-HANDSHAKE = "sclda\\x00"
+HANDSHAKE = "sclda\x00"
 INPUT_DIR = "./input/"
 INPUT_PID_DIR = f"{INPUT_DIR}PID/"
 SYSCALL_INFO_PATH = "./syscall_info.csv"

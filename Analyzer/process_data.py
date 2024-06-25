@@ -67,6 +67,8 @@ def process_syscall(new_path_ls):
     edited_row_dict = {}
     for row in new_info_ls:
         splited_row = row.split("\t")
+        if len(splited_row) <= 1:
+            continue
         pid = splited_row[0]
         clock = splited_row[1]
         if not pid in edited_row_dict.keys():
@@ -86,14 +88,13 @@ def process_syscall(new_path_ls):
         clock_ls.sort()
         min_clock = clock_ls[0]
         for clock in clock_ls:
-            try:
-                temp_splited = save_row_dict[clock].split("\t")
-                save_row_ls.append(
-                    f"{clock-min_clock}\t{id_name_dict[temp_splited[2]]}\t"
-                    + "\t".join(temp_splited[3:])
-                )
-            except:
-                pass
+            temp_splited = save_row_dict[clock].split("\t")
+            if len(temp_splited) <= 2:
+                continue
+            save_row_ls.append(
+                f"{clock-min_clock}\t{id_name_dict[temp_splited[2]]}\t"
+                + "\t".join(temp_splited[3:])
+            )
         if is_exists(save_file_path):
             append_str_to_file("\n".join(save_row_ls), save_file_path)
         else:
