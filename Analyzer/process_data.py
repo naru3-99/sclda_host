@@ -33,15 +33,18 @@ def process_pid(new_path_ls):
     for filepath in new_path_ls:
         for msg in load_object_from_file(filepath):
             new_info_ls.append(
-                "\t".join([str(s).strip("b'").strip("'") for s in msg.split(b"\x05")])
+                "\t".join(
+                    [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
+                )
             )
     if HANDSHAKE in new_info_ls:
         new_info_ls.remove(HANDSHAKE)
 
-
     # 新しいPID情報を統合し、保存する
-    tab_splited_pidls = [info.split("\t") for info in (current_pidls + new_info_ls) if(len(info) != 0)]
-    if (len(tab_splited_pidls) == 0):
+    tab_splited_pidls = [
+        info.split("\t") for info in (current_pidls + new_info_ls) if (len(info) != 0)
+    ]
+    if len(tab_splited_pidls) == 0:
         return
     sorted_pid_ls = [
         "\t".join(row) for row in sorted(tab_splited_pidls, key=lambda x: int(x[0]))
@@ -55,7 +58,9 @@ def process_syscall(new_path_ls):
     for path in new_path_ls:
         for msg in load_object_from_file(path):
             new_info_ls.append(
-                "\t".join([str(s).strip("b'").strip("'") for s in msg.split(b"\x05")])
+                "\t".join(
+                    [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
+                )
             )
 
     # pidとsched_clockが一致している部分を結合する
