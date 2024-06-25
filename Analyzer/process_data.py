@@ -12,7 +12,7 @@ from CONST import (
     HANDSHAKE,
 )
 
-# syscall id -> syscall nameの辞書を段取り
+# (str)syscall id -> (str)syscall nameの辞書を段取り
 id_name_dict = {}
 for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
     splited_row = row.split(",")
@@ -54,47 +54,33 @@ def process_pid(new_path_ls):
 
 def process_syscall(new_path_ls):
     # 新しいパケットを読み込む
-    new_info_ls = []
+    pid__clock_scid__dict = {}
     for path in new_path_ls:
         for msg in load_object_from_file(path):
-            new_info_ls.append(
-                "\t".join(
-                    [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
-                )
-            )
-
-    # pidとsched_clockが一致している部分を結合する
-    edited_row_dict = {}
-    for row in new_info_ls:
-        splited_row = row.split("\t")
-        if len(splited_row) <= 1:
-            continue
-        pid = splited_row[0]
-        clock = splited_row[1]
-        if not pid in edited_row_dict.keys():
-            edited_row_dict[pid] = {}
-        if not clock in edited_row_dict[pid].keys():
-            edited_row_dict[pid][clock] = []
-        edited_row_dict[pid][clock].append("\t".join(splited_row[2:]))
-
-    # ソートしてから保存する
-    for pid in edited_row_dict.keys():
-        save_row_dict = {}
-        save_file_path = f"{OUTPUT_DIR}{pid}.csv"
-        for clock in edited_row_dict[pid].keys():
-            save_row_dict[int(clock)] = "".join(edited_row_dict[pid][clock])
-        save_row_ls = []
-        clock_ls = [k for k in save_row_dict.keys()]
-        clock_ls.sort()
-        min_clock = clock_ls[0]
-        for clock in clock_ls:
-            temp_splited = save_row_dict[clock].split("\t")
-            if len(temp_splited) <= 2:
+            temp_ls = [s.decode("utf-8", errors="replace") for s in msg.split(b"\x05")]
+            # pid,clock,scid,retval,...なはずなので、
+            # 3未満の長さならパケット破棄
+            if len(temp_ls) <= 3:
                 continue
-            save_row_ls.append(
-                f"{clock-min_clock}\t{id_name_dict[temp_splited[2]]}\t"
-                + "\t".join(temp_splited[3:])
-            )
+            pid = temp_ls[0]
+            clock = temp_ls[1]
+            scid = temp_ls[2]
+            other = "\t".join(temp_ls[3:])
+
+            if not (scid in id_name_dict.keys()):
+                print(clock, pid, scid, other)
+                continue
+            if not (pid in pid__clock_scid__dict.keys()):
+                pid__clock_scid__dict[pid] = {}
+            if not (clock in pid__clock_scid__dict[pid].keys()):
+                pid__clock_scid__dict[pid][clock] = []
+            pid__clock_scid__dict[pid][clock].append(id_name_dict[scid] + "\t" + other)
+
+    for pid in pid__clock_scid__dict.keys():
+        save_file_path = f"{OUTPUT_DIR}{pid}.csv"
+        save_row_ls = []
+        for clock, msg in pid__clock_scid__dict[pid].items():
+            save_row_ls.append(f"{clock}\t{msg}")
         if is_exists(save_file_path):
             append_str_to_file("\n".join(save_row_ls), save_file_path)
         else:
