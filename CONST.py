@@ -44,6 +44,7 @@ TIME_TO_WAIT_INIT = 0.3
 HANDSHAKE = "sclda\\x00"
 INPUT_DIR = "./input/"
 INPUT_PID_DIR = f"{INPUT_DIR}PID/"
+SYSCALL_INFO_PATH = "./syscall_info.csv"
 
 # 出力するパス
 OUTPUT_DIR = "./output/"

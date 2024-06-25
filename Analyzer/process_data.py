@@ -38,8 +38,11 @@ def process_pid(new_path_ls):
     if HANDSHAKE in new_info_ls:
         new_info_ls.remove(HANDSHAKE)
 
+
     # 新しいPID情報を統合し、保存する
-    tab_splited_pidls = [info.split("\t") for info in (current_pidls + new_info_ls)]
+    tab_splited_pidls = [info.split("\t") for info in (current_pidls + new_info_ls) if(len(info) != 0)]
+    if (len(tab_splited_pidls) == 0):
+        return
     sorted_pid_ls = [
         "\t".join(row) for row in sorted(tab_splited_pidls, key=lambda x: int(x[0]))
     ]
@@ -81,8 +84,8 @@ def process_syscall(new_path_ls):
             try:
                 temp_splited = save_row_dict[clock].split("\t")
                 save_row_ls.append(
-                    f"{clock-min_clock}\t{id_name_dict[temp_splited[3]]}\t"
-                    + "\t".join(temp_splited[4:])
+                    f"{clock-min_clock}\t{id_name_dict[temp_splited[2]]}\t"
+                    + "\t".join(temp_splited[3:])
                 )
             except:
                 pass
