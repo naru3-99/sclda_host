@@ -32,14 +32,10 @@ def process_pid(new_path_ls):
     new_info_ls = []
     for filepath in new_path_ls:
         for msg in load_object_from_file(filepath):
-            new_info_ls.append(
-                "\t".join(
-                    [
-                        s.decode("ISO-8859-1", errors="replace")
-                        for s in msg.split(b"\x05")
-                    ]
-                )
+            row = "\t".join(
+                [s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")]
             )
+            new_info_ls.append(row)
     if HANDSHAKE in new_info_ls:
         new_info_ls.remove(HANDSHAKE)
 
@@ -73,7 +69,7 @@ def process_syscall(new_path_ls):
                 scname = "\t" + id_name_dict[temp_ls[2]]
             else:
                 scname = ""
-            other = "\t".join(temp_ls[2:])
+            other = "\t".join(temp_ls[2:]).replace("\n", "\\n")
 
             if not (pid in pid__clock_scid__dict.keys()):
                 pid__clock_scid__dict[pid] = {}
@@ -86,6 +82,50 @@ def process_syscall(new_path_ls):
         save_row_ls = []
         for clock, msg in pid__clock_scid__dict[pid].items():
             save_row_ls.append(f"{clock}\t{msg}")
+        if is_exists(save_file_path):
+            append_str_to_file("\n".join(save_row_ls), save_file_path)
+        else:
+            save_str_to_file("\n".join(save_row_ls), save_file_path)
+
+
+def process_syscall_last(new_path_ls):
+    # 新しいパケットを読み込む
+    pid__clock_scid__dict = {}
+    for path in new_path_ls:
+        for msg in load_object_from_file(path):
+            temp_ls = [
+                s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")
+            ]
+            # pid,clock,scid,retval,...なはずなので、
+            # 2未満の長さならパケット破棄
+            if len(temp_ls) <= 2:
+                continue
+            pid = temp_ls[0]
+            clock = temp_ls[1]
+            if temp_ls[2] in id_name_dict.keys():
+                scname = "\t" + id_name_dict[temp_ls[2]]
+            else:
+                continue
+            other = "\t".join(temp_ls[2:]).replace("\n", "\\n")
+
+            if not (pid in pid__clock_scid__dict.keys()):
+                pid__clock_scid__dict[pid] = {}
+            if not (clock in pid__clock_scid__dict[pid].keys()):
+                pid__clock_scid__dict[pid][clock] = ""
+            pid__clock_scid__dict[pid][clock] += scname + "\t" + other
+
+    for pid in pid__clock_scid__dict.keys():
+        save_file_path = f"{OUTPUT_DIR}{pid}.csv"
+
+        clock_msg_ls = [
+            [int(clock), msg] for clock, msg in pid__clock_scid__dict[pid].items()
+        ]
+        sorted_clock_msg_ls = sorted(clock_msg_ls, key=lambda x: x[0])
+        min_clock = sorted_clock_msg_ls[0][0]
+
+        save_row_ls = []
+        for clock, msg in sorted_clock_msg_ls:
+            save_row_ls.append(f"{clock-min_clock}\t{msg}")
         if is_exists(save_file_path):
             append_str_to_file("\n".join(save_row_ls), save_file_path)
         else:
