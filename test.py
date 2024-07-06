@@ -11,6 +11,7 @@ from CONST import (
     OUTPUT_DIR,
     SYSCALL_INFO_PATH,
 )
+from Analyzer.process_data import process_syscall_last
 
 # (str)syscall id -> (str)syscall nameの辞書を段取り
 id_name_dict = {}
@@ -76,4 +77,4 @@ def delete_data():
 
 if __name__ == "__main__":
     delete_data()
-    process_syscall(get_all_file_path_in("./input/"))
+    process_syscall_last([p for p in get_all_file_path_in("./input/") if (not "PID" in p)])
