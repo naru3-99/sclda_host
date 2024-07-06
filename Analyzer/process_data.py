@@ -33,7 +33,7 @@ def process_pid(new_path_ls):
     for filepath in new_path_ls:
         for msg in load_object_from_file(filepath):
             row = "\t".join(
-                [s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")]
+                [s.decode("latin-1", errors="replace") for s in msg.split(b"\x05")]
             )
             new_info_ls.append(row)
     if HANDSHAKE in new_info_ls:
@@ -57,7 +57,7 @@ def process_syscall(new_path_ls):
     for path in new_path_ls:
         for msg in load_object_from_file(path):
             temp_ls = [
-                s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")
+                s.decode("latin-1", errors="replace") for s in msg.split(b"\x05")
             ]
             # pid,clock,scid,retval,...なはずなので、
             # 2未満の長さならパケット破棄
@@ -66,7 +66,7 @@ def process_syscall(new_path_ls):
             pid = temp_ls[0]
             clock = temp_ls[1]
             if temp_ls[2] in id_name_dict.keys():
-                scname = "\t" + id_name_dict[temp_ls[2]]
+                scname = f"{temp_ls[2]}-{id_name_dict[temp_ls[2]]}"
             else:
                 scname = ""
             other = "\t".join(temp_ls[2:]).replace("\n", "\\n")
@@ -94,7 +94,7 @@ def process_syscall_last(new_path_ls):
     for path in new_path_ls:
         for msg in load_object_from_file(path):
             temp_ls = [
-                s.decode("ISO-8859-1", errors="replace") for s in msg.split(b"\x05")
+                s.decode("latin-1", errors="replace") for s in msg.split(b"\x05")
             ]
             # pid,clock,scid,retval,...なはずなので、
             # 2未満の長さならパケット破棄
@@ -103,9 +103,9 @@ def process_syscall_last(new_path_ls):
             pid = temp_ls[0]
             clock = temp_ls[1]
             if temp_ls[2] in id_name_dict.keys():
-                scname = "\t" + id_name_dict[temp_ls[2]]
+                scname = f"{temp_ls[2]}-{id_name_dict[temp_ls[2]]}"
             else:
-                continue
+                scname = ""
             other = "\t".join(temp_ls[2:]).replace("\n", "\\n")
 
             if not (pid in pid__clock_scid__dict.keys()):
