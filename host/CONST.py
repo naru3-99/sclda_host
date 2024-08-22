@@ -14,10 +14,14 @@ SYSCALL_BUFSIZE = 1200
 # パケットを何個単位で保存するか
 PIDPPID_SAVESIZE = 50
 SYSCALL_SAVESIZE = 1000
+# パケットを解釈するための制御文字
+# splitting syscall data by this delimiter
+SCLDA_DELIMITER =  b"\x05"
+# splitting each infomation by this
+SCLDA_EACH_DLMT =  b"\x06"
 
 # サーバがタイムアウトするまでの秒数
 DEFAULT_SERVER_TIMEOUT = 60
-
 # serverを開始するまでのラグ
 TIME_TO_WAIT_INIT = 0.3
 

@@ -8,6 +8,8 @@ from lib.fs import (
 from CONST import (
     OUTPUT_DIR,
     SYSCALL_INFO_PATH,
+    SCLDA_DELIMITER,
+    SCLDA_EACH_DLMT
 )
 
 # (str)syscall id -> (str)syscall nameの辞書を段取り
@@ -24,7 +26,7 @@ def process_syscall(new_path_ls):
     for path in new_path_ls:
         for msg in load_object_from_file(path):
             temp_ls = [
-                s.decode("latin-1", errors="replace") for s in msg.split(b"\x05")
+                s.decode("latin-1", errors="replace") for s in msg.split(SCLDA_DELIMITER)
             ]
             # pid,clock,scid,retval,...なはずなので、
             # 2未満の長さならパケット破棄
