@@ -2,7 +2,8 @@
 # auther:naru
 # encoding=utf-8
 from Server.ScldaServer import server_init
-from Analyzer.process_data import process_pid, process_syscall, process_syscall_last
+from Analyzer.pid import process_pid
+from Analyzer.syscall import process_syscall
 from lib.fs import get_all_file_path_in, get_all_dir_names_in, rmrf, ensure_path_exists
 from CONST import INPUT_DIR, INPUT_PID_DIR, OUTPUT_DIR
 
@@ -47,4 +48,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    process_syscall_last([path for path in get_all_file_path_in(f'{OUTPUT_DIR}')])
