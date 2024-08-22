@@ -4,8 +4,18 @@
 from Server.ScldaServer import server_init
 from Analyzer.pid import process_pid
 from Analyzer.syscall import process_syscall
-from lib.fs import get_all_file_path_in, get_all_dir_names_in, rmrf, ensure_path_exists
-from CONST import INPUT_DIR, INPUT_PID_DIR, OUTPUT_DIR
+from lib.fs import (
+    get_all_file_path_in,
+    get_all_dir_names_in,
+    rmrf,
+    ensure_path_exists,
+)
+
+from CONST import (
+    INPUT_DIR,
+    INPUT_PID_DIR,
+    OUTPUT_DIR,
+)
 
 
 def main():
