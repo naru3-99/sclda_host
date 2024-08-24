@@ -66,7 +66,12 @@ def process_one_pickle(pickle_path):
                 scname = f"{scid}-{id_name_dict[scid]}"
             else:
                 scname = ""
-            other = "\t".join(scmsg_element_list[INDEX_SCID + 1 :]).replace("\n", "\\n")
+            other = "\t".join(
+                [
+                    replace_control_chars(msg)
+                    for msg in scmsg_element_list[INDEX_SCID + 1 :]
+                ]
+            )
             pid__clock_scid__dict[pid][clock] += f"{scname}\t{other}"
 
 
@@ -78,4 +83,4 @@ def process_syscall(new_path_ls):
         msg_list = [
             f"{clock}\t{msg}" for clock, msg in pid__clock_scid__dict[pid].items()
         ]
-        save_str_to_file(replace_control_chars("\n".join(msg_list)), path)
+        save_str_to_file("\n".join(msg_list), path)
