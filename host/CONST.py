@@ -33,7 +33,7 @@ DEFAULT_SERVER_TIMEOUT = 5.0
 TIME_TO_WAIT_INIT = 0.3
 
 # exit command
-FINISH_COMMAND = "sclda_reboot"
+FINISH_COMMAND = b"sclda_reboot"
 
 
 # ./Analyzer settings
