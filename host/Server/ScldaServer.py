@@ -43,7 +43,7 @@ def server_init():
             SYSCALL_BUFSIZE,
             DEFAULT_SERVER_TIMEOUT,
             SYSCALL_SAVESIZE,
-            INPUT_DIR,
+            f'{INPUT_DIR}{i}/',
             QUEUE
         )
         for i in range(PORT_NUMBER)

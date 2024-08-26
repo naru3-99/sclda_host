@@ -6,6 +6,7 @@ from lib.multp import start_process
 from lib.fs import (
     save_object_to_file,
     count_files_in_directory,
+    ensure_path_exists
 )
 
 
@@ -26,6 +27,7 @@ class UdpServerSaveFile(UdpServer):
         self._save_bufsize = save_bufsize
         # directory to save pickles
         self._save_dir = save_dir
+        ensure_path_exists(save_dir)
         # queue to communicate with parent process
         self.msg_queue = msg_queue
 
@@ -45,13 +47,13 @@ class UdpServerSaveFile(UdpServer):
                     continue
                 if len(packet) == 14 and FINISH_COMMAND in packet:
                     self.msg_queue.put(FINISH_COMMAND)
-                    start_process(save_proccess, packet_buf.copy())
+                    start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
                     return
                 packet_buf.append(packet)
 
                 if len(packet_buf) >= self._save_bufsize:
-                    start_process(save_proccess, packet_buf.copy())
+                    start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     packet_buf.clear()
             except KeyboardInterrupt:
                 return
