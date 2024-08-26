@@ -38,7 +38,7 @@ class UdpServerSaveFile(UdpServer):
         while True:
             try:
                 if (not self.msg_queue.empty()):
-                    start_process(save_proccess, packet_buf.copy())
+                    start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
                     return
 
