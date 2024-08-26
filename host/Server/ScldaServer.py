@@ -1,5 +1,6 @@
 import time
-from lib.multp import start_process
+import multiprocessing as mp
+
 from Server.UdpServerSaveFile import UdpServerSaveFile
 from CONST import (
     SERVER_HOST,
@@ -16,6 +17,9 @@ from CONST import (
     INPUT_PID_DIR,
 )
 
+from lib.multp import start_process
+
+QUEUE = mp.Queue()
 
 def server_init():
     # start pidppid server
@@ -25,8 +29,9 @@ def server_init():
         PIDPPID_BUFSIZE,
         DEFAULT_SERVER_TIMEOUT,
         PIDPPID_SAVESIZE,
+        INPUT_PID_DIR,
+        QUEUE,
     )
-    pidppid_server.change_save_dir(INPUT_PID_DIR)
     start_process(pidppid_server.main)
     time.sleep(TIME_TO_WAIT_INIT)
 
@@ -38,11 +43,11 @@ def server_init():
             SYSCALL_BUFSIZE,
             DEFAULT_SERVER_TIMEOUT,
             SYSCALL_SAVESIZE,
+            INPUT_DIR,
+            QUEUE
         )
         for i in range(PORT_NUMBER)
     ]
-    for i, s in enumerate(syscall_server_ls):
-        s.change_save_dir(f"{INPUT_DIR}{i}/")
     for server in syscall_server_ls:
         start_process(server.main)
         time.sleep(TIME_TO_WAIT_INIT)

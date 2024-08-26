@@ -1,77 +1,65 @@
 import multiprocessing as mp
-import time
-
 from Server.UdpServer import UdpServer
-from lib.multp import start_process
-from lib.fs import save_object_to_file, count_files_in_directory, ensure_path_exists
+from CONST import FINISH_COMMAND
 
-COM_SAVE_PROC_STOP = "\x02STOP\x03"
+from lib.multp import start_process
+from lib.fs import (
+    save_object_to_file,
+    count_files_in_directory,
+)
 
 
 class UdpServerSaveFile(UdpServer):
-    def __init__(self, host, port, bufsize, timeout, save_buf):
+
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        bufsize: int,
+        timeout: float,
+        save_bufsize: int,
+        save_dir: str,
+        msg_queue: mp.Queue,
+    ):
         super().__init__(host, port, bufsize, timeout)
-        # いくつのメッセージが貯まると保存するか
-        self._save_buf = save_buf
-
-        # 保存するパスを渡すためのキュー
-        # AutoDAとやり取りするために使用
-        self._path_q = mp.Queue()
-        # パケットを保存したリストを渡すためのキュー
-        # 保存プロセスとやり取りするために使用
-        self._msg_q = mp.Queue()
-
-    def change_save_dir(self, save_dir: str):
-        ensure_path_exists(save_dir)
-        self._path_q.put(save_dir)
+        # bufsize to save packets
+        self._save_bufsize = save_bufsize
+        # directory to save pickles
+        self._save_dir = save_dir
+        # queue to communicate with parent process
+        self.msg_queue = msg_queue
 
     def main(self):
-        # パケットを貯めるリスト
-        msgs_ls = []
-        # パケットを保存するディレクトリ
-        while self._path_q.empty():
-            time.sleep(1)
-        save_dir = self._path_q.get()
-
-        # 保存プロセスを起動
-        start_process(save_proccess, self._msg_q)
+        # buffer for packet
+        packet_buf = []
 
         while True:
             try:
-                # 次のイテレーションに移行する場合
-                if not self._path_q.empty():
-                    self._msg_q.put((save_dir, msgs_ls.copy()))
-                    msgs_ls.clear()
-                    save_dir = self._path_q.get()
+                if (not self.msg_queue.empty()):
+                    start_process(save_proccess, packet_buf.copy())
+                    self.close()
+                    return
 
-                # パケットを取得し、バッファにぶち込む
-                msg = self.receive_udp_packet()
-                if msg is None:
+                packet = self.receive_udp_packet()
+                if packet is None:
                     continue
-                msgs_ls.append(msg)
-                # 保存するか判断し、保存する
-                if len(msgs_ls) >= self._save_buf:
-                    self._msg_q.put((save_dir, msgs_ls.copy()))
-                    msgs_ls.clear()
+                if len(packet) == 14 and FINISH_COMMAND in packet:
+                    self.msg_queue.put(FINISH_COMMAND)
+                    start_process(save_proccess, packet_buf.copy())
+                    self.close()
+                    return
+                packet_buf.append(packet)
+
+                if len(packet_buf) >= self._save_bufsize:
+                    start_process(save_proccess, packet_buf.copy())
+                    packet_buf.clear()
             except KeyboardInterrupt:
                 return
             except Exception as e:
-                print(f"Error in server-save-file-main loop: {str(e)}")
+                print(e)
 
 
-def save_proccess(queue: mp.Queue) -> None:
-    # 取得したパケットを、ピクルで保存するプロセス
-    while True:
-        # queueには、コマンドかパケットが入っているリストが格納される
-        item = queue.get()
-
-        # 終了コマンドだった場合
-        if item == COM_SAVE_PROC_STOP:
-            return
-
-        # パケットを保存する
-        save_dir, packet_ls = item
-        count = count_files_in_directory(save_dir)
-        save_object_to_file(packet_ls, f"{save_dir}{count}.pickle")
-
-
+def save_proccess(packet_buffer: list, save_dir: str) -> None:
+    # パケットを保存する
+    count = count_files_in_directory(save_dir)
+    save_object_to_file(packet_buffer, f"{save_dir}{count}.pickle")
