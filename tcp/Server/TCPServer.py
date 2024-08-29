@@ -36,6 +36,7 @@ class TcpServer:
         self._address = (host, port)
         self._bufsize = bufsize
         self._timeout = timeout
+        self._server_socket = None
         self._client_socket = None
         try:
             self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,12 +68,11 @@ class TcpServer:
 
         """
         try:
-            if self._client_socket:
-                self._client_socket.settimeout(self._timeout)
-                rcv_data = self._client_socket.recv(self._bufsize)
-                return rcv_data
-            else:
+            if (self._client_socket is None):
                 return None
+            self._client_socket.settimeout(self._timeout)
+            rcv_data = self._client_socket.recv(self._bufsize)
+            return rcv_data
         except Exception:
             return None
 

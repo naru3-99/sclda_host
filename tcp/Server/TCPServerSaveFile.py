@@ -36,9 +36,11 @@ class TcpServerSaveFile(TcpServer):
     def main(self):
         # buffer for packet
         packet_buf = []
+
         while not self.accept_connection():
             time.sleep(1)
 
+        print(f"Tcp server accepted, port = {self._address[0]}")
         while True:
             try:
                 if (not self.msg_queue.empty()):
