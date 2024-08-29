@@ -40,7 +40,6 @@ class TcpServerSaveFile(TcpServer):
         while not self.accept_connection():
             time.sleep(1)
 
-        print(f"Tcp server accepted, port = {self._address[0]}")
         while True:
             try:
                 if (not self.msg_queue.empty()):
@@ -51,20 +50,25 @@ class TcpServerSaveFile(TcpServer):
                 packet = self.receive_tcp_packet()
                 if packet is None:
                     continue
+
                 if len(packet) == 14 and FINISH_COMMAND in packet:
                     self.msg_queue.put(FINISH_COMMAND)
                     start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
                     return
-                packet_buf.append(packet)
 
+                packet_buf.append(packet)
                 if len(packet_buf) >= self._save_bufsize:
                     start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     packet_buf.clear()
+
             except KeyboardInterrupt:
+                self.close_connection()
+                self.close_server()
                 return
+
             except Exception as e:
-                print(e)
+                pass
 
 
 def save_proccess(packet_buffer: list, save_dir: str) -> None:

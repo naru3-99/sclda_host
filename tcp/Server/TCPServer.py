@@ -68,11 +68,12 @@ class TcpServer:
 
         """
         try:
-            if (self._client_socket is None):
+            if self._client_socket is None:
                 return None
+
             self._client_socket.settimeout(self._timeout)
-            rcv_data = self._client_socket.recv(self._bufsize)
-            return rcv_data
+            return self._client_socket.recv(self._bufsize)
+
         except Exception:
             return None
 
