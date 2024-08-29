@@ -1,4 +1,6 @@
 import multiprocessing as mp
+import time
+
 from Server.TCPServer import TcpServer
 from CONST import FINISH_COMMAND
 
@@ -34,6 +36,8 @@ class TcpServerSaveFile(TcpServer):
     def main(self):
         # buffer for packet
         packet_buf = []
+        while not self.accept_connection():
+            time.sleep(1)
 
         while True:
             try:
