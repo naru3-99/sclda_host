@@ -22,9 +22,9 @@ SYSCALL_SAVESIZE = 1000
 
 # パケットを解釈するための制御文字
 # splitting syscall data by this delimiter
-SCLDA_DELIMITER =  b"\x05"
+SCLDA_DELIMITER =  chr(7)
 # splitting each infomation by this
-SCLDA_EACH_DLMT =  b"\x06"
+SCLDA_EACH_DLMT =  chr(18)
 
 # サーバがタイムアウトするまでの秒数
 DEFAULT_SERVER_TIMEOUT = 5.0

@@ -67,7 +67,7 @@ class TcpServerSaveFile(TcpServer):
                 self.close_server()
                 return
 
-            except Exception as e:
+            except:
                 pass
 
 

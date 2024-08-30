@@ -72,7 +72,8 @@ class TcpServer:
                 return None
 
             self._client_socket.settimeout(self._timeout)
-            return self._client_socket.recv(self._bufsize)
+            msg = self._client_socket.recv(self._bufsize)
+            return msg if (len(msg) != 0) else None
 
         except Exception:
             return None
