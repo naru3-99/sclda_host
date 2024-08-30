@@ -2,20 +2,23 @@ from lib.fs import (
     load_object_from_file,
     save_str_to_file,
     load_str_from_file,
+    get_all_file_path_in,
+    rmrf,
+    ensure_path_exists,
 )
 from CONST import (
     OUTPUT_DIR,
     SYSCALL_INFO_PATH,
     SCLDA_DELIMITER,
     SCLDA_EACH_DLMT,
-    DECODE
+    DECODE,
 )
 
-INDEX_PID = 0
-INDEX_TIME = 1
-INDEX_SCID = 2
+INDEX_SCID = 0
+INDEX_PID = 1
+INDEX_TIME = 2
+INDEX_SCNAME = 3
 
-pid__clock_scid__dict = {}
 # (str)syscall id -> (str)syscall nameの辞書を段取り
 id_name_dict = {}
 for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
@@ -24,47 +27,81 @@ for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
         continue
     id_name_dict[splited_row[1]] = splited_row[0]
 
-
-def __process_syscall(pickle_path):
-    for packet in load_object_from_file(pickle_path):
-        for msg in [msg for msg in packet.split(SCLDA_EACH_DLMT) if len(msg) != 0]:
-            element_ls = [
-                e.decode(DECODE, errors="replace")
-                for e in msg.split(SCLDA_DELIMITER)
-                if len(e) != 0
-            ]
-            # リストはpid, clock, scDATA... で長さが3以上のはず
-            if len(element_ls) < 3:
-                continue
-
-            pid = element_ls[INDEX_PID]
-            if not pid.isdigit():
-                continue
-
-            if not (pid in pid__clock_scid__dict.keys()):
-                pid__clock_scid__dict[pid] = {}
-
-            clock = element_ls[INDEX_TIME]
-            if not (clock in pid__clock_scid__dict[pid].keys()):
-                pid__clock_scid__dict[pid][clock] = ""
-
-            scid = element_ls[INDEX_SCID]
-            if scid in id_name_dict.keys():
-                scname = f"{scid}-{id_name_dict[scid]}"
-            else:
-                scname = f"{scid}"
-
-            other = "\t".join([e for e in element_ls[INDEX_SCID + 1 :]])
-            pid__clock_scid__dict[pid][clock] += f"{scname}\t{other}"
+pid_scid_data_dict = {}
 
 
 def process_syscall(new_path_ls):
+    byte_str = b""
     for path in new_path_ls:
-        __process_syscall(path)
+        byte_str += b"".join(
+            [o.replace(bytes([0]), b"") for o in load_object_from_file(path)]
+        )
 
-    for pid in pid__clock_scid__dict.keys():
-        path = f"{OUTPUT_DIR}{pid}.csv"
-        msg_list = [
-            f"{clock}\t{msg}" for clock, msg in pid__clock_scid__dict[pid].items()
+    scid_ls = []
+
+    for msg in [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]:
+        element_ls = [
+            e.decode(DECODE, errors="replace")
+            for e in msg.split(SCLDA_DELIMITER)
+            if len(e) != 0
         ]
-        save_str_to_file("\n".join(msg_list), path)
+        # リストはscid, pid, clock, scDATA... で長さが4以上のはず
+        if len(element_ls) < 4:
+            continue
+
+        scid = element_ls[INDEX_SCID]
+        if not scid.isdigit():
+            continue
+
+        pid = element_ls[INDEX_PID]
+        if not pid.isdigit():
+            continue
+
+        if not (pid in pid_scid_data_dict.keys()):
+            pid_scid_data_dict[pid] = {}
+
+        if not (scid in pid_scid_data_dict[pid].keys()):
+            pid_scid_data_dict[pid][scid] = ["", ""]
+
+        clock = element_ls[INDEX_TIME]
+        if not clock.isdigit():
+            continue
+        pid_scid_data_dict[pid][scid][0] = clock
+
+        if scid in scid_ls:
+            pid_scid_data_dict[pid][scid][1] += "\t".join(element_ls[INDEX_SCNAME:])
+            continue
+
+        scid_ls.append(scid)
+        other = "\t".join(element_ls[INDEX_SCNAME + 1 :])
+        scname = element_ls[INDEX_SCNAME]
+        if scname in id_name_dict.keys():
+            scdata = f"{scname}-{id_name_dict[scname]}"
+        else:
+            scdata = scname
+        pid_scid_data_dict[pid][scid][1] += f"{scdata}\t{other}\t"
+
+    for pid in pid_scid_data_dict.keys():
+        path = f"{OUTPUT_DIR}{pid}.csv"
+
+        clock_msg_dict = {}
+        for scid in pid_scid_data_dict[pid].keys():
+            clock, msg = pid_scid_data_dict[pid][scid]
+            clock_msg_dict[int(clock)] = msg
+
+        msg_ls = []
+        for clock in sorted(clock_msg_dict.keys()):
+            msg_ls.append(f"{clock}\t{msg}")
+
+        save_str_to_file("\n".join(msg_ls), path)
+
+
+if __name__ == "__main__":
+    rmrf(OUTPUT_DIR)
+    ensure_path_exists(OUTPUT_DIR)
+    process_syscall(
+        [
+            f"./input/0/{p}.pickle"
+            for p in range(len(get_all_file_path_in("./input/0/")))
+        ]
+    )

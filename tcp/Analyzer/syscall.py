@@ -2,13 +2,16 @@ from lib.fs import (
     load_object_from_file,
     save_str_to_file,
     load_str_from_file,
+    get_all_file_path_in,
+    rmrf,
+    ensure_path_exists,
 )
 from CONST import (
     OUTPUT_DIR,
     SYSCALL_INFO_PATH,
     SCLDA_DELIMITER,
     SCLDA_EACH_DLMT,
-    DECODE
+    DECODE,
 )
 
 INDEX_SCID = 0
@@ -26,12 +29,15 @@ for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
 
 pid_scid_data_dict = {}
 
+
 def process_syscall(new_path_ls):
     byte_str = b""
     for path in new_path_ls:
         byte_str += b"".join(
             [o.replace(bytes([0]), b"") for o in load_object_from_file(path)]
         )
+
+    scid_ls = []
 
     for msg in [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]:
         element_ls = [
@@ -55,23 +61,27 @@ def process_syscall(new_path_ls):
             pid_scid_data_dict[pid] = {}
 
         if not (scid in pid_scid_data_dict[pid].keys()):
-            pid_scid_data_dict[pid][scid] = ("","")
+            pid_scid_data_dict[pid][scid] = ["", ""]
 
         clock = element_ls[INDEX_TIME]
         if not clock.isdigit():
             continue
         pid_scid_data_dict[pid][scid][0] = clock
 
+        if scid in scid_ls:
+            pid_scid_data_dict[pid][scid][1] += "\t".join(element_ls[INDEX_SCNAME:])
+            continue
+
+        scid_ls.append(scid)
+        other = "\t".join(element_ls[INDEX_SCNAME + 1 :])
         scname = element_ls[INDEX_SCNAME]
         if scname in id_name_dict.keys():
-            scname = f"{scname}-{id_name_dict[scname]}"
+            scdata = f"{scname}-{id_name_dict[scname]}"
         else:
-            scname = f"{scname}"
-        other = "\t".join([e for e in element_ls[INDEX_SCNAME + 1 :]])
+            scdata = scname
+        pid_scid_data_dict[pid][scid][1] += f"{scdata}\t{other}\t"
 
-        pid_scid_data_dict[pid][scid][1] += f"{scname}\t{other}\t"
-
-    for pid in pid_scid_data_dict():
+    for pid in pid_scid_data_dict.keys():
         path = f"{OUTPUT_DIR}{pid}.csv"
 
         clock_msg_dict = {}
