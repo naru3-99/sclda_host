@@ -9,8 +9,7 @@ PIDPPID_PORT = 15001
 # システムコールに関係する情報を取得する
 # BASEPORT + (プロセッサID % 4)をPORTとして使用する
 SYSCALL_BASEPORT = 15002
-# PORT_NUMBER = 16
-PORT_NUMBER = 1
+PORT_NUMBER = 16
 
 # パケットの大きさに関するバッファサイズ
 # see sclda/linux_6.1_mod/include/net/sclda.h

@@ -11,11 +11,7 @@ from lib.fs import (
     ensure_path_exists,
 )
 
-from CONST import (
-    INPUT_DIR,
-    INPUT_PID_DIR,
-    OUTPUT_DIR,
-)
+from CONST import INPUT_DIR, INPUT_PID_DIR, OUTPUT_DIR, PORT_NUMBER
 
 
 def main():
@@ -30,16 +26,18 @@ def main():
     # 前処理を実施
     # pickleファイルまでのパス
     processed_pidpath_ls = []
-    processed_scpath_ls = []
+    processed_scdata_lsls = [[] for _ in range(PORT_NUMBER)]
+    dir_name_ls = [d for d in get_all_dir_names_in(INPUT_DIR) if d != "PID"]
 
     while True:
-        if (not QUEUE.empty()):
+        if not QUEUE.empty():
             rmrf(OUTPUT_DIR)
             ensure_path_exists(OUTPUT_DIR)
             process_pid(get_all_file_path_in(INPUT_PID_DIR))
-            process_syscall(
-                [path for path in get_all_file_path_in(INPUT_DIR) if not "PID" in path]
-            )
+            for d in get_all_dir_names_in(INPUT_DIR):
+                if "PID" in d:
+                    continue
+                process_syscall(f"{INPUT_DIR}{d}/")
             return
 
         # pidの処理
@@ -51,18 +49,15 @@ def main():
         processed_pidpath_ls = current_pidpath_ls
 
         # syscallの処理
-        current_dir_ls = [
-            dirname for dirname in get_all_dir_names_in(INPUT_DIR) if dirname != "PID"
-        ]
-        current_scpath_ls = []
-        for dirname in current_dir_ls:
-            current_scpath_ls += get_all_file_path_in(f"{INPUT_DIR}{dirname}/")
+        for i, d in enumerate(dir_name_ls):
+            path_ls = [
+                p
+                for p in get_all_file_path_in(f"{INPUT_DIR}{d}/")
+                if not p in processed_scdata_lsls[i]
+            ]
+            process_syscall(path_ls)
+            processed_scdata_lsls[i] += path_ls
 
-        new_scpath_ls = [
-            cpath for cpath in current_scpath_ls if (not cpath in processed_scpath_ls)
-        ]
-        process_syscall(new_scpath_ls)
-        processed_scpath_ls = current_scpath_ls
 
 if __name__ == "__main__":
     main()

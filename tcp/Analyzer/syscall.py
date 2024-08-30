@@ -2,9 +2,8 @@ from lib.fs import (
     load_object_from_file,
     save_str_to_file,
     load_str_from_file,
-    get_all_file_path_in,
-    rmrf,
-    ensure_path_exists,
+    is_exists,
+    append_str_to_file,
 )
 from CONST import (
     OUTPUT_DIR,
@@ -30,15 +29,14 @@ for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
 pid_scid_data_dict = {}
 
 
-def process_syscall(new_path_ls):
+def process_syscall(target_path_ls):
     byte_str = b""
-    for path in new_path_ls:
+    for path in target_path_ls:
         byte_str += b"".join(
             [o.replace(bytes([0]), b"") for o in load_object_from_file(path)]
         )
 
     scid_ls = []
-
     for msg in [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]:
         element_ls = [
             e.decode(DECODE, errors="replace")
@@ -93,4 +91,7 @@ def process_syscall(new_path_ls):
         for clock in sorted(clock_msg_dict.keys()):
             msg_ls.append(f"{clock}\t{msg}")
 
-        save_str_to_file("\n".join(msg_ls), path)
+        if is_exists(path):
+            append_str_to_file("\n".join(msg_ls), path)
+        else:
+            save_str_to_file("\n".join(msg_ls), path)
