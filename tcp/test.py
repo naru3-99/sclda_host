@@ -2,7 +2,6 @@ from lib.fs import (
     load_object_from_file,
     save_str_to_file,
     load_str_from_file,
-    get_all_file_path_in
 )
 from CONST import (
     OUTPUT_DIR,
@@ -25,43 +24,43 @@ for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
         continue
     id_name_dict[splited_row[1]] = splited_row[0]
 
-def main():
-    byte_str = b""
-    for path in get_all_file_path_in('./input/'):
-        byte_str += b"".join(
-            [o.replace(bytes([0]), b"") for o in load_object_from_file(path)]
-        )
 
-    for msg in [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]:
-        element_ls = [
-            e.decode(DECODE, errors="replace")
-            for e in msg.split(SCLDA_DELIMITER)
-            if len(e) != 0
-        ]
-        # リストはpid, clock, scDATA... で長さが3以上のはず
-        if len(element_ls) < 3:
-            # print(element_ls)
-            continue
+def __process_syscall(pickle_path):
+    for packet in load_object_from_file(pickle_path):
+        for msg in [msg for msg in packet.split(SCLDA_EACH_DLMT) if len(msg) != 0]:
+            element_ls = [
+                e.decode(DECODE, errors="replace")
+                for e in msg.split(SCLDA_DELIMITER)
+                if len(e) != 0
+            ]
+            # リストはpid, clock, scDATA... で長さが3以上のはず
+            if len(element_ls) < 3:
+                continue
 
-        pid = element_ls[INDEX_PID]
-        if not pid.isdigit():
-            continue
+            pid = element_ls[INDEX_PID]
+            if not pid.isdigit():
+                continue
 
-        if not (pid in pid__clock_scid__dict.keys()):
-            pid__clock_scid__dict[pid] = {}
+            if not (pid in pid__clock_scid__dict.keys()):
+                pid__clock_scid__dict[pid] = {}
 
-        clock = element_ls[INDEX_TIME]
-        if not (clock in pid__clock_scid__dict[pid].keys()):
-            pid__clock_scid__dict[pid][clock] = ""
+            clock = element_ls[INDEX_TIME]
+            if not (clock in pid__clock_scid__dict[pid].keys()):
+                pid__clock_scid__dict[pid][clock] = ""
 
-        scid = element_ls[INDEX_SCID]
-        if scid in id_name_dict.keys():
-            scname = f"{scid}-{id_name_dict[scid]}"
-        else:
-            scname = f"{scid}"
+            scid = element_ls[INDEX_SCID]
+            if scid in id_name_dict.keys():
+                scname = f"{scid}-{id_name_dict[scid]}"
+            else:
+                scname = f"{scid}"
 
-        other = "\t".join([e for e in element_ls[INDEX_SCID + 1 :]])
-        pid__clock_scid__dict[pid][clock] += f"{scname}\t{other}"
+            other = "\t".join([e for e in element_ls[INDEX_SCID + 1 :]])
+            pid__clock_scid__dict[pid][clock] += f"{scname}\t{other}"
+
+
+def process_syscall(new_path_ls):
+    for path in new_path_ls:
+        __process_syscall(path)
 
     for pid in pid__clock_scid__dict.keys():
         path = f"{OUTPUT_DIR}{pid}.csv"
@@ -69,6 +68,3 @@ def main():
             f"{clock}\t{msg}" for clock, msg in pid__clock_scid__dict[pid].items()
         ]
         save_str_to_file("\n".join(msg_list), path)
-
-if __name__ == '__main__':
-    main()
