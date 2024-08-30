@@ -15,9 +15,9 @@ pid_info_dict = {}
 
 def __process_pid(filepath):
     byte_str = b"".join(load_object_from_file(filepath))
-    data_ls = [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]
+    data_ls = [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0) and (msg != HANDSHAKE)]
     for data in data_ls:
-        splited_data = [msg.decode("latin-1", errors="replace") for msg in data.split(SCLDA_DELIMITER)]
+        splited_data = [msg.decode("ASCII", errors="replace") for msg in data.split(SCLDA_DELIMITER)]
         if len(splited_data) != 3:
             continue
         pid, ppid, comm = splited_data

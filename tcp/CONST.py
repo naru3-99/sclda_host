@@ -47,7 +47,7 @@ OUTPUT_DIR = "./output/"
 PID_OUTPUT_PATH = f"{OUTPUT_DIR}pid.csv"
 
 # handshake command
-HANDSHAKE = "sclda\x00"
+HANDSHAKE = b"sclda\x00"
 SYSCALL_INFO_PATH = "./syscall_info.csv"
 
 # sshするために必要な情報
