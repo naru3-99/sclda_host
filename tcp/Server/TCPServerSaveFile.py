@@ -51,7 +51,7 @@ class TcpServerSaveFile(TcpServer):
                 if packet is None:
                     continue
 
-                if len(packet) == 14 and FINISH_COMMAND in packet:
+                if FINISH_COMMAND in packet:
                     self.msg_queue.put(FINISH_COMMAND)
                     start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
