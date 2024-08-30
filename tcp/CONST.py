@@ -42,6 +42,9 @@ FINISH_COMMAND = b"sclda_reboot"
 INPUT_DIR = "./input/"
 INPUT_PID_DIR = f"{INPUT_DIR}PID/"
 
+# decode format
+DECODE = "ASCII"
+
 # 出力するパス
 OUTPUT_DIR = "./output/"
 PID_OUTPUT_PATH = f"{OUTPUT_DIR}pid.csv"

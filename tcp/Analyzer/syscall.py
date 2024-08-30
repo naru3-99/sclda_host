@@ -8,6 +8,7 @@ from CONST import (
     SYSCALL_INFO_PATH,
     SCLDA_DELIMITER,
     SCLDA_EACH_DLMT,
+    DECODE
 )
 
 INDEX_PID = 0
@@ -28,7 +29,7 @@ def __process_syscall(pickle_path):
     for packet in load_object_from_file(pickle_path):
         for msg in [msg for msg in packet.split(SCLDA_EACH_DLMT) if len(msg) != 0]:
             element_ls = [
-                e.decode("latin-1", errors="replace")
+                e.decode(DECODE, errors="replace")
                 for e in msg.split(SCLDA_DELIMITER)
                 if len(e) != 0
             ]

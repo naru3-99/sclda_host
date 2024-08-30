@@ -7,6 +7,7 @@ from CONST import (
     SCLDA_EACH_DLMT,
     SCLDA_DELIMITER,
     HANDSHAKE,
+    DECODE
 )
 
 # dict[pid] -> "ppid(\t)comm"
@@ -17,7 +18,7 @@ def __process_pid(filepath):
     byte_str = b"".join(load_object_from_file(filepath))
     data_ls = [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0) and (msg != HANDSHAKE)]
     for data in data_ls:
-        splited_data = [msg.decode("ASCII", errors="replace") for msg in data.split(SCLDA_DELIMITER)]
+        splited_data = [msg.decode(DECODE, errors="replace") for msg in data.split(SCLDA_DELIMITER)]
         if len(splited_data) != 3:
             continue
         pid, ppid, comm = splited_data
