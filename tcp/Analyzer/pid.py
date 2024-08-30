@@ -1,40 +1,40 @@
 from lib.fs import (
-    is_exists,
     load_object_from_file,
     save_str_to_file,
-    load_str_from_file,
 )
 from CONST import (
     PID_OUTPUT_PATH,
+    SCLDA_EACH_DLMT,
+    SCLDA_DELIMITER,
     HANDSHAKE,
 )
 
+# dict[pid] -> "ppid(\t)comm"
+pid_info_dict = {}
+
+
+def __process_pid(filepath):
+    byte_str = b"".join(load_object_from_file(filepath))
+    data_ls = [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]
+    for data in data_ls:
+        splited_data = [msg.decode("latin-1", errors="replace") for msg in data.split(SCLDA_DELIMITER)]
+        if len(splited_data) != 3:
+            continue
+        pid, ppid, comm = splited_data
+        if not pid.isdigit():
+            continue
+        if pid in pid_info_dict.keys():
+            continue
+        pid_info_dict[int(pid)] = f"{ppid}\t{comm}"
+
 
 def process_pid(new_path_ls):
-    # 現在のPIDリストを読み込む
-    if is_exists(PID_OUTPUT_PATH):
-        current_pidls = load_str_from_file(PID_OUTPUT_PATH).split("\n")
-    else:
-        current_pidls = []
+    for path in new_path_ls:
+        __process_pid(path)
 
-    # 新しいPID情報のリストを作成
-    new_info_ls = []
-    for filepath in new_path_ls:
-        for msg in load_object_from_file(filepath):
-            row = "\t".join(
-                [s.decode("latin-1", errors="replace") for s in msg.split(b"\x05")]
-            )
-            new_info_ls.append(row)
-    if HANDSHAKE in new_info_ls:
-        new_info_ls.remove(HANDSHAKE)
+    pid_ls = list(pid_info_dict.keys())
+    pid_ls.sort()
 
-    # 新しいPID情報を統合し、保存する
-    tab_splited_pidls = [
-        info.split("\t") for info in (current_pidls + new_info_ls) if (len(info) != 0)
-    ]
-    if len(tab_splited_pidls) == 0:
-        return
-    sorted_pid_ls = [
-        "\t".join(row) for row in sorted(tab_splited_pidls, key=lambda x: int(x[0]))
-    ]
-    save_str_to_file("\n".join(sorted_pid_ls), PID_OUTPUT_PATH)
+    saving_data_ls = [f"{pid}\t{pid_info_dict[pid]}" for pid in pid_ls]
+
+    save_str_to_file("\n".join(saving_data_ls), f"{PID_OUTPUT_PATH}")
