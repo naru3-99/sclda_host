@@ -15,7 +15,7 @@ PORT_NUMBER = 1
 # パケットの大きさに関するバッファサイズ
 # see sclda/linux_6.1_mod/include/net/sclda.h
 PIDPPID_BUFSIZE = 50
-SYSCALL_BUFSIZE = 1000
+SYSCALL_BUFSIZE = 1460
 
 # パケットを何個単位で保存するか
 PIDPPID_SAVESIZE = 20
