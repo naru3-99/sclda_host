@@ -78,7 +78,7 @@ class TcpServer:
         except Exception:
             return None
 
-    def close_connection(self):
+    def _close_connection(self):
         """
         Closes the connection with the client.
 
@@ -90,7 +90,7 @@ class TcpServer:
         except Exception:
             return
 
-    def close_server(self):
+    def _close_server(self):
         """
         Closes the TCP server socket.
 
@@ -98,4 +98,11 @@ class TcpServer:
         try:
             self._server_socket.close()
         except Exception:
+            return
+
+    def close(self):
+        try:
+            self._close_connection()
+            self._close_server()
+        except:
             return

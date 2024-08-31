@@ -1,14 +1,14 @@
 import multiprocessing as mp
 import time
 
-from Server.TCPServer import TcpServer
 from CONST import FINISH_COMMAND
+from Server.TCPServer import TcpServer
 
 from lib.multp import start_process
 from lib.fs import (
     save_object_to_file,
     count_files_in_directory,
-    ensure_path_exists
+    ensure_path_exists,
 )
 
 
@@ -42,8 +42,10 @@ class TcpServerSaveFile(TcpServer):
 
         while True:
             try:
-                if (not self.msg_queue.empty()):
-                    start_process(save_proccess, packet_buf.copy(), self._save_dir)
+                if not self.msg_queue.empty():
+                    # 終了条件を満たしたため、終了する
+                    if len(packet_buf) != 0:
+                        start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
                     return
 
@@ -53,7 +55,8 @@ class TcpServerSaveFile(TcpServer):
 
                 if FINISH_COMMAND in packet:
                     self.msg_queue.put(FINISH_COMMAND)
-                    start_process(save_proccess, packet_buf.copy(), self._save_dir)
+                    if len(packet_buf) != 0:
+                        start_process(save_proccess, packet_buf.copy(), self._save_dir)
                     self.close()
                     return
 
@@ -63,8 +66,7 @@ class TcpServerSaveFile(TcpServer):
                     packet_buf.clear()
 
             except KeyboardInterrupt:
-                self.close_connection()
-                self.close_server()
+                self.close()
                 return
 
             except:

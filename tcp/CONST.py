@@ -22,9 +22,9 @@ SYSCALL_SAVESIZE = 1000
 
 # パケットを解釈するための制御文字
 # splitting syscall data by this delimiter
-SCLDA_DELIMITER = bytes([7])
+SCLDA_DELIMITER = 7
 # splitting each infomation by this
-SCLDA_EACH_DLMT = bytes([18])
+SCLDA_EACH_DLMT = 18
 
 # サーバがタイムアウトするまでの秒数
 DEFAULT_SERVER_TIMEOUT = 5.0
@@ -50,7 +50,7 @@ OUTPUT_DIR = "./output/"
 PID_OUTPUT_PATH = f"{OUTPUT_DIR}pid.csv"
 
 # handshake command
-HANDSHAKE = b"sclda\x00"
+HANDSHAKE = b"sclda"
 SYSCALL_INFO_PATH = "./syscall_info.csv"
 
 # sshするために必要な情報

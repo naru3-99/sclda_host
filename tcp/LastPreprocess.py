@@ -17,11 +17,13 @@ from CONST import (
 def main():
     rmrf(OUTPUT_DIR)
     ensure_path_exists(OUTPUT_DIR)
-    process_pid(get_all_file_path_in(INPUT_PID_DIR))
-    for d in get_all_dir_names_in(INPUT_DIR):
-        if ("PID" in d):
-            continue
-        process_syscall(f"{INPUT_DIR}{d}/")
+
+    dir_len = len(get_all_file_path_in(INPUT_PID_DIR))
+    process_pid([f"{INPUT_PID_DIR}{p}.pickle" for p in range(dir_len)][0:2])
+    # for d in get_all_dir_names_in(INPUT_DIR):
+    #     if ("PID" in d):
+    #         continue
+    #     process_syscall(get_all_file_path_in(f'{INPUT_DIR}'))
 
 
 if __name__ == "__main__":

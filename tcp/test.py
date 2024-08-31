@@ -1,107 +1,82 @@
 from lib.fs import (
     load_object_from_file,
     save_str_to_file,
-    load_str_from_file,
-    get_all_file_path_in,
-    rmrf,
-    ensure_path_exists,
 )
 from CONST import (
-    OUTPUT_DIR,
-    SYSCALL_INFO_PATH,
-    SCLDA_DELIMITER,
+    PID_OUTPUT_PATH,
     SCLDA_EACH_DLMT,
+    SCLDA_DELIMITER,
+    HANDSHAKE,
     DECODE,
 )
 
-INDEX_SCID = 0
-INDEX_PID = 1
-INDEX_TIME = 2
-INDEX_SCNAME = 3
+# dict[pid] -> "ppid(\t)comm"
+pid_info_dict = {}
 
-# (str)syscall id -> (str)syscall nameの辞書を段取り
-id_name_dict = {}
-for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
-    splited_row = row.split(",")
-    if len(splited_row) == 0:
-        continue
-    id_name_dict[splited_row[1]] = splited_row[0]
-
-pid_scid_data_dict = {}
+byte_str = b""
 
 
-def process_syscall(new_path_ls):
-    byte_str = b""
-    for path in new_path_ls:
-        byte_str += b"".join(
-            [o.replace(bytes([0]), b"") for o in load_object_from_file(path)]
-        )
+def __process_pid(filepath):
+    global byte_str
+    byte_str += b"".join(load_object_from_file(filepath))
+    temp_bstr = b""
+    splited_msg_ls = []
+    msg_lsls = []
+    for c in byte_str:
+        if c == 0:
+            continue
+        if c == SCLDA_EACH_DLMT:
+            if (len(temp_bstr) != 0):
+                splited_msg_ls.append(temp_bstr)
+            if len(splited_msg_ls) == 0:
+                continue
+            msg_lsls.append(splited_msg_ls)
+            splited_msg_ls = []
+        elif c == SCLDA_DELIMITER:
+            splited_msg_ls.append(temp_bstr)
+            temp_bstr = b""
+        else:
+            temp_bstr += bytes([c])
 
-    scid_ls = []
+    print(msg_lsls)
+    return
+    if temp_bstr == HANDSHAKE:
+        temp_bstr = b""
 
-    for msg in [msg for msg in byte_str.split(SCLDA_EACH_DLMT) if (len(msg) != 0)]:
-        element_ls = [
-            e.decode(DECODE, errors="replace")
-            for e in msg.split(SCLDA_DELIMITER)
-            if len(e) != 0
-        ]
-        # リストはscid, pid, clock, scDATA... で長さが4以上のはず
-        if len(element_ls) < 4:
+    # 断片化のせいでtemp_bstrやsplited_msg_lsが
+    # 空でない場合、byte_strを次回に引き継ぐ
+    splited_msg = b""
+    if len(splited_msg_ls) != 0:
+        splited_msg += SCLDA_DELIMITER.join([splited_msg_ls])
+    byte_str = splited_msg + temp_bstr
+
+    for splited_msg_ls in msg_lsls:
+        # 長さが3(pid, ppid, comm)以外は
+        # エラーとみなし、廃棄する
+        if len(splited_msg_ls) != 3:
             continue
 
-        scid = element_ls[INDEX_SCID]
-        if not scid.isdigit():
-            continue
-
-        pid = element_ls[INDEX_PID]
+        pid, ppid, comm = splited_msg_ls
         if not pid.isdigit():
             continue
-
-        if not (pid in pid_scid_data_dict.keys()):
-            pid_scid_data_dict[pid] = {}
-
-        if not (scid in pid_scid_data_dict[pid].keys()):
-            pid_scid_data_dict[pid][scid] = ["", ""]
-
-        clock = element_ls[INDEX_TIME]
-        if not clock.isdigit():
-            continue
-        pid_scid_data_dict[pid][scid][0] = clock
-
-        if scid in scid_ls:
-            pid_scid_data_dict[pid][scid][1] += "\t".join(element_ls[INDEX_SCNAME:])
-            continue
-
-        scid_ls.append(scid)
-        other = "\t".join(element_ls[INDEX_SCNAME + 1 :])
-        scname = element_ls[INDEX_SCNAME]
-        if scname in id_name_dict.keys():
-            scdata = f"{scname}-{id_name_dict[scname]}"
-        else:
-            scdata = scname
-        pid_scid_data_dict[pid][scid][1] += f"{scdata}\t{other}\t"
-
-    for pid in pid_scid_data_dict.keys():
-        path = f"{OUTPUT_DIR}{pid}.csv"
-
-        clock_msg_dict = {}
-        for scid in pid_scid_data_dict[pid].keys():
-            clock, msg = pid_scid_data_dict[pid][scid]
-            clock_msg_dict[int(clock)] = msg
-
-        msg_ls = []
-        for clock in sorted(clock_msg_dict.keys()):
-            msg_ls.append(f"{clock}\t{msg}")
-
-        save_str_to_file("\n".join(msg_ls), path)
+        pid_info_dict[int(pid)] = f"{ppid}\t{comm}"
 
 
-if __name__ == "__main__":
-    rmrf(OUTPUT_DIR)
-    ensure_path_exists(OUTPUT_DIR)
-    process_syscall(
-        [
-            f"./input/0/{p}.pickle"
-            for p in range(len(get_all_file_path_in("./input/0/")))
-        ]
-    )
+def process_pid(new_path_ls):
+    for path in new_path_ls:
+        # obj = load_object_from_file(path)
+        # print(obj)
+         __process_pid(path)
+
+    # pid_ls = list(pid_info_dict.keys())
+    # pid_ls.sort()
+
+    # saving_data_ls = [f"{pid}\t{pid_info_dict[pid]}" for pid in pid_ls]
+    # save_str_to_file("\n".join(saving_data_ls), f"{PID_OUTPUT_PATH}")
+
+    # pid_info_dict.clear()
+
+if __name__ == '__main__':
+    obj = load_object_from_file('./input/PID/0.pickle')
+    for c in obj[1]:
+        print(bytes([c]),c)

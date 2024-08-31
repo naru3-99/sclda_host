@@ -25,38 +25,38 @@ def main():
     server_init()
     # 前処理を実施
     # pickleファイルまでのパス
-    processed_pidpath_ls = []
-    processed_scdata_lsls = [[] for _ in range(PORT_NUMBER)]
-    dir_name_ls = [d for d in get_all_dir_names_in(INPUT_DIR) if d != "PID"]
+    # processed_pidpath_ls = []
+    # processed_scdata_lsls = [[] for _ in range(PORT_NUMBER)]
+    # dir_name_ls = [d for d in get_all_dir_names_in(INPUT_DIR) if d != "PID"]
 
-    while True:
-        if not QUEUE.empty():
-            rmrf(OUTPUT_DIR)
-            ensure_path_exists(OUTPUT_DIR)
-            process_pid(get_all_file_path_in(INPUT_PID_DIR))
-            for d in get_all_dir_names_in(INPUT_DIR):
-                if "PID" in d:
-                    continue
-                process_syscall(f"{INPUT_DIR}{d}/")
-            return
+    # while True:
+    #     if not QUEUE.empty():
+    #         rmrf(OUTPUT_DIR)
+    #         ensure_path_exists(OUTPUT_DIR)
+    #         process_pid(get_all_file_path_in(INPUT_PID_DIR))
+    #         for d in get_all_dir_names_in(INPUT_DIR):
+    #             if "PID" in d:
+    #                 continue
+    #             process_syscall(f"{INPUT_DIR}{d}/")
+    #         return
 
-        # pidの処理
-        current_pidpath_ls = get_all_file_path_in(INPUT_PID_DIR)
-        new_pidpath_ls = [
-            cpath for cpath in current_pidpath_ls if (not cpath in processed_pidpath_ls)
-        ]
-        process_pid(new_pidpath_ls)
-        processed_pidpath_ls = current_pidpath_ls
+    #     # pidの処理
+    #     current_pidpath_ls = get_all_file_path_in(INPUT_PID_DIR)
+    #     new_pidpath_ls = [
+    #         cpath for cpath in current_pidpath_ls if (not cpath in processed_pidpath_ls)
+    #     ]
+    #     process_pid(new_pidpath_ls)
+    #     processed_pidpath_ls = current_pidpath_ls
 
-        # syscallの処理
-        for i, d in enumerate(dir_name_ls):
-            path_ls = [
-                p
-                for p in get_all_file_path_in(f"{INPUT_DIR}{d}/")
-                if not p in processed_scdata_lsls[i]
-            ]
-            process_syscall(path_ls)
-            processed_scdata_lsls[i] += path_ls
+    #     # syscallの処理
+    #     for i, d in enumerate(dir_name_ls):
+    #         path_ls = [
+    #             p
+    #             for p in get_all_file_path_in(f"{INPUT_DIR}{d}/")
+    #             if not p in processed_scdata_lsls[i]
+    #         ]
+    #         process_syscall(path_ls)
+    #         processed_scdata_lsls[i] += path_ls
 
 
 if __name__ == "__main__":
