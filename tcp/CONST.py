@@ -23,8 +23,10 @@ SYSCALL_SAVESIZE = 1000
 # パケットを解釈するための制御文字
 # splitting syscall data by this delimiter
 SCLDA_DELIMITER = 7
-# splitting each infomation by this
-SCLDA_EACH_DLMT = 18
+# msg must start with this
+SCLDA_MSG_START = 18
+# msg must end with this
+SCLDA_MSG_END = 20
 
 # サーバがタイムアウトするまでの秒数
 DEFAULT_SERVER_TIMEOUT = 5.0

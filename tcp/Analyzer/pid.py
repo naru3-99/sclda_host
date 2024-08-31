@@ -1,62 +1,61 @@
 from lib.fs import (
     load_object_from_file,
     save_str_to_file,
+    append_str_to_file,
+    is_exists,
 )
 from CONST import (
-    PID_OUTPUT_PATH,
-    SCLDA_EACH_DLMT,
+    SCLDA_MSG_START,
+    SCLDA_MSG_END,
     SCLDA_DELIMITER,
-    HANDSHAKE,
+    PID_OUTPUT_PATH,
     DECODE,
 )
 
 # dict[pid] -> "ppid(\t)comm"
 pid_info_dict = {}
-
-byte_str = b""
+pid_byte_str = b""
 
 
 def __process_pid(filepath):
-    global byte_str
-    byte_str += b"".join(load_object_from_file(filepath))
+    global pid_byte_str
+    pid_byte_str += b"".join(load_object_from_file(filepath))
+
     temp_bstr = b""
-    splited_msg_ls = []
-    msg_lsls = []
-    for c in byte_str:
+    msg_ls = []
+    msg_ls_ls = []
+    for c in pid_byte_str:
         if c == 0:
             continue
-        if c == SCLDA_EACH_DLMT:
-            if (len(temp_bstr) != 0):
-                splited_msg_ls.append(temp_bstr)
-            if len(splited_msg_ls) == 0:
+        if c == SCLDA_MSG_START:
+            temp_bstr = b""
+            msg_ls = []
+        elif c == SCLDA_MSG_END:
+            if len(temp_bstr) != 0:
+                msg_ls.append(temp_bstr)
+            if len(msg_ls) == 0:
                 continue
-            msg_lsls.append(splited_msg_ls)
-            splited_msg_ls = []
+            msg_ls_ls.append(msg_ls)
         elif c == SCLDA_DELIMITER:
-            splited_msg_ls.append(temp_bstr)
+            msg_ls.append(temp_bstr)
             temp_bstr = b""
         else:
             temp_bstr += bytes([c])
 
-    print(msg_lsls)
-    return
-    if temp_bstr == HANDSHAKE:
-        temp_bstr = b""
-
     # 断片化のせいでtemp_bstrやsplited_msg_lsが
     # 空でない場合、byte_strを次回に引き継ぐ
     splited_msg = b""
-    if len(splited_msg_ls) != 0:
-        splited_msg += SCLDA_DELIMITER.join([splited_msg_ls])
-    byte_str = splited_msg + temp_bstr
+    if len(msg_ls) != 0:
+        splited_msg += bytes([SCLDA_MSG_START]) + bytes([SCLDA_DELIMITER]).join(msg_ls)
+    pid_byte_str = splited_msg + temp_bstr
 
-    for splited_msg_ls in msg_lsls:
+    for msg_ls in msg_ls_ls:
         # 長さが3(pid, ppid, comm)以外は
         # エラーとみなし、廃棄する
-        if len(splited_msg_ls) != 3:
+        if len(msg_ls) != 3:
             continue
 
-        pid, ppid, comm = splited_msg_ls
+        pid, ppid, comm = [msg.decode(DECODE) for msg in msg_ls]
         if not pid.isdigit():
             continue
         pid_info_dict[int(pid)] = f"{ppid}\t{comm}"
@@ -64,14 +63,13 @@ def __process_pid(filepath):
 
 def process_pid(new_path_ls):
     for path in new_path_ls:
-        # obj = load_object_from_file(path)
-        # print(obj)
-         __process_pid(path)
+        __process_pid(path)
 
-    # pid_ls = list(pid_info_dict.keys())
-    # pid_ls.sort()
-
-    # saving_data_ls = [f"{pid}\t{pid_info_dict[pid]}" for pid in pid_ls]
-    # save_str_to_file("\n".join(saving_data_ls), f"{PID_OUTPUT_PATH}")
-
-    # pid_info_dict.clear()
+    saving_data_ls = [
+        f"{pid}\t{pid_info_dict[pid]}" for pid in sorted(list(pid_info_dict.keys()))
+    ]
+    if is_exists(PID_OUTPUT_PATH):
+        append_str_to_file("\n".join(saving_data_ls), PID_OUTPUT_PATH)
+    else:
+        save_str_to_file("\n".join(saving_data_ls), PID_OUTPUT_PATH)
+    pid_info_dict.clear()
