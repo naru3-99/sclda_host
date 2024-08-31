@@ -47,7 +47,7 @@ def __process_pid(filepath):
     splited_msg = b""
     if len(msg_ls) != 0:
         splited_msg += bytes([SCLDA_MSG_START]) + bytes([SCLDA_DELIMITER]).join(msg_ls)
-    pid_byte_str = splited_msg + temp_bstr
+    pid_byte_str = splited_msg + bytes([SCLDA_DELIMITER]) + temp_bstr
 
     for msg_ls in msg_ls_ls:
         # 長さが3(pid, ppid, comm)以外は

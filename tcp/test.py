@@ -17,7 +17,7 @@ from CONST import (
     SCLDA_DELIMITER,
 )
 
-from lib.fs import get_all_file_path_in
+from lib.fs import get_all_file_path_in,rmrf,ensure_path_exists
 
 
 # (str)syscall id -> (str)syscall nameの辞書を段取り
@@ -34,9 +34,11 @@ current_pid_list = []
 # 保存するデータを記録するための辞書
 pid_scid_data_dict = {}
 
+
 def contains_control_characters(byte_data):
     # 制御文字の範囲: 0-31, 127
     return any(0 <= byte <= 31 or byte == 127 for byte in byte_data)
+
 
 def escape_control_characters(byte_data):
     # 制御文字をエスケープシーケンスに置き換える
@@ -46,7 +48,7 @@ def escape_control_characters(byte_data):
         byte_data,
     )
     # バイト列を文字列に変換して返す
-    return escaped_bytes.decode("ascii")
+    return escaped_bytes.decode(DECODE, errors="replace")
 
 
 def correct_rule1(s):
@@ -106,12 +108,16 @@ def correct_rules(s):
     id3 = correct_rule3(str2)
     return id1 + id2 + id3
 
+
 # 断片化に対処するためのバッファ
 sc_byte_str = b""
+
 
 def __process_sc(filepath):
     global sc_byte_str
     sc_byte_str += b"".join(load_object_from_file(filepath))
+
+    # sc_byte_str = sc_byte_str[0:100]
 
     model_str = ""
     for char in sc_byte_str:
@@ -125,27 +131,28 @@ def __process_sc(filepath):
             model_str += "x"
 
     target_index_ls = correct_rules(model_str)
+
     temp_byte = []
     msg_ls = []
     msg_ls_ls = []
 
     for i, char in enumerate(sc_byte_str):
-        if (i in target_index_ls):
+        if i in target_index_ls:
             temp_byte.append(char)
             continue
-        if (char == SCLDA_MSG_START):
-            temp_byte.clear()
-            msg_ls.clear()
-        elif(char == SCLDA_MSG_END):
+        if char == SCLDA_MSG_START:
+            temp_byte = []
+            msg_ls = []
+        elif char == SCLDA_MSG_END:
             if len(temp_byte) != 0:
                 msg_ls.append(bytes(temp_byte))
-                temp_byte.clear()
+                temp_byte = []
             if len(msg_ls) == 0:
                 continue
             msg_ls_ls.append(msg_ls)
-        elif(char == SCLDA_DELIMITER):
+        elif char == SCLDA_DELIMITER:
             msg_ls.append(bytes(temp_byte))
-            temp_byte.clear()
+            temp_byte = []
         else:
             temp_byte.append(char)
 
@@ -154,40 +161,34 @@ def __process_sc(filepath):
     splited_msg = b""
     if len(msg_ls) != 0:
         splited_msg += bytes([SCLDA_MSG_START]) + bytes([SCLDA_DELIMITER]).join(msg_ls)
-    sc_byte_str = splited_msg + bytes(temp_byte)
+    sc_byte_str = splited_msg + bytes([SCLDA_DELIMITER]) + bytes(temp_byte)
 
     is_additional = False
-    for msg_ls in msg_ls_ls[0:3]:
+    for msg_ls in msg_ls_ls:
         # scid, pid, time, scdataだから
         # 足りていない場合は廃棄する
         if len(msg_ls) < 4:
             print(msg)
             continue
 
-        scid, pid, time = [
-            msg.decode(DECODE, errors="replace") for msg in msg_ls[0:3]
-        ]
-        if (
-            not scid.isdigit()
-            or (not pid.isdigit())
-            or (not time.isdigit())
-        ):
+        scid, pid, time = [msg.decode(DECODE, errors="replace") for msg in msg_ls[0:3]]
+        if not scid.isdigit() or (not pid.isdigit()) or (not time.isdigit()):
             continue
 
         scname = msg_ls[3]
         is_additional = True
-        if (contains_control_characters(scname)):
+        if contains_control_characters(scname):
             # additional information
             scname = escape_control_characters(scname)
         else:
             scname = scname.decode(DECODE, errors="replace")
-            if (scname.isdigit()):
+            if scname.isdigit():
                 is_additional = False
 
         other = ""
-        if (len(msg_ls) > 5):
+        if len(msg_ls) >= 5:
             for msg in msg_ls[4:]:
-                if (contains_control_characters(msg)):
+                if contains_control_characters(msg):
                     other += f"{escape_control_characters(msg)}\t"
                 else:
                     encoded_msg = msg.decode(DECODE, errors="replace")
@@ -200,7 +201,7 @@ def __process_sc(filepath):
             pid_scid_data_dict[pid][scid] = ""
 
         # 二番目以降の情報のはず
-        if (is_additional):
+        if is_additional:
             pid_scid_data_dict[pid][scid] += f"{scname}{other}"
             continue
 
@@ -231,7 +232,11 @@ def process_sc(new_path_ls):
 
 
 if __name__ == "__main__":
-    __process_sc('./input/0/0.pickle')
-    # print()
-    # dir_len = len(get_all_file_path_in("./input/5/"))
-    # process_sc([f"./input/5/{p}.pickle" for p in range(dir_len)])
+    # __process_sc('./input/0/0.pickle')
+    if is_exists(OUTPUT_DIR):
+        rmrf(OUTPUT_DIR)
+    ensure_path_exists(OUTPUT_DIR)
+
+    dir_len = len(get_all_file_path_in("./input/0/"))
+    target_path_ls = [f"./input/0/{p}.pickle" for p in range(dir_len)]
+    process_sc(target_path_ls)
