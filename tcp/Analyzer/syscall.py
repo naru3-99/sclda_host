@@ -162,7 +162,7 @@ def __process_sc(filepath: str, num: int):
         # scid, pid, time, scdataだから
         # 足りていない場合は廃棄する
         if len(msg_ls) < 4:
-            print(msg)
+            # print(msg)
             continue
 
         scid, pid, time = [msg.decode(DECODE, errors="replace") for msg in msg_ls[0:3]]
