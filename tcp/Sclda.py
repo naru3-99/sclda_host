@@ -19,6 +19,7 @@ sc_passed_ls = [[] for _ in range(PORT_NUMBER)]
 
 
 def analyze():
+    global pid_passed_ls, sc_passed_ls
     dir_len = len(get_all_file_path_in(INPUT_PID_DIR))
     pid_arg_ls = [
         path
