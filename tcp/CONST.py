@@ -29,7 +29,7 @@ SCLDA_MSG_START = 18
 SCLDA_MSG_END = 20
 
 # サーバがタイムアウトするまでの秒数
-DEFAULT_SERVER_TIMEOUT = 5.0
+DEFAULT_SERVER_TIMEOUT = 10.0
 
 # serverを開始するまでのラグ
 TIME_TO_WAIT_INIT = 0.3
