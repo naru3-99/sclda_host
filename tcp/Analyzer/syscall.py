@@ -155,17 +155,22 @@ def __process_sc(filepath: str, num: int):
 
     # 同一scidをcntごとに並び替え
     for scid, cnt_data_dict in scid_cnt_data_dict.items():
-        data = []
+        data_temp = []
         pid, scname = None, None
         for cnt in sorted(cnt_data_dict.keys()):
             if cnt == "0":
                 pid = cnt_data_dict[0].decode(DECODE, errors="replace")
                 scname = cnt_data_dict[2].decode(DECODE, errors="replace")
-                data += cnt_data_dict[cnt][1] + cnt_data_dict[cnt][3:]
+                data_temp += cnt_data_dict[cnt][1] + cnt_data_dict[cnt][3:]
             else:
-                data += cnt_data_dict[cnt]
+                data_temp += cnt_data_dict[cnt]
 
-        data = [d.decode(DECODE, errors="replace") for d in data]
+        data = []
+        for d in data:
+            if (contains_control_characters(d)):
+                data.append(escape_control_characters(d))
+            else:
+                data.append(d.decode(DECODE, errors="replace"))
 
         # error check
         if pid is None:
