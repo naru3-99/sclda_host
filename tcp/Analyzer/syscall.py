@@ -27,9 +27,6 @@ for row in load_str_from_file(SYSCALL_INFO_PATH).split("\n"):
         continue
     id_name_dict[splited_row[1]] = splited_row[0]
 
-# 保存するデータを記録するための辞書
-pid_scid_data_dict = {}
-
 
 def contains_control_characters(byte_data):
     # 制御文字の範囲: 0-31, 127
@@ -84,30 +81,16 @@ def correct_rule2(s):
     return "".join(corrected), target_index
 
 
-def correct_rule3(s):
-    target_index = []
-    splited = ["s" + a for a in s.split("s") if (len(a) != 0)]
-    i = 0
-    for msg in splited:
-        if msg.count("c") >= 3:
-            i += len(msg)
-            continue
-        target_index.append(i)
-        target_index.append(i + len(msg) - 1)
-        i += len(msg)
-    return target_index
-
-
 def correct_rules(s):
     str1, id1 = correct_rule1(s)
-    str2, id2 = correct_rule2(str1)
-    id3 = correct_rule3(str2)
-    return id1 + id2 + id3
+    _, id2 = correct_rule2(str1)
+    return id1 + id2
 
 
 # 断片化に対処するためのバッファ
 sc_byte_str = [b"" for _ in range(PORT_NUMBER)]
-
+# 保存するデータを記録するための辞書
+pid_scid_data_dict = {}
 
 def __process_sc(filepath: str, num: int):
     global sc_byte_str
@@ -157,55 +140,46 @@ def __process_sc(filepath: str, num: int):
         splited_msg += bytes([SCLDA_MSG_START]) + bytes([SCLDA_DELIMITER]).join(msg_ls)
     sc_byte_str[num] = splited_msg + bytes([SCLDA_DELIMITER]) + bytes(temp_byte)
 
-    is_additional = False
+    # scidごとにデータを集める
+    scid_cnt_data_dict = {}
     for msg_ls in msg_ls_ls:
-        # scid, pid, time, scdataだから
-        # 足りていない場合は廃棄する
-        if len(msg_ls) < 4:
-            # print(msg)
+        scid, cnt = msg_ls[0], msg_ls[1]
+        if not (scid.isdigit() and cnt.isdigit()):
+            print(msg_ls)
             continue
+        if not (scid in scid_cnt_data_dict.keys()):
+            scid_cnt_data_dict[scid] = {}
+        scid_cnt_data_dict[scid][cnt] = msg_ls[2:]
 
-        scid, pid, time = [msg.decode(DECODE, errors="replace") for msg in msg_ls[0:3]]
-        if not scid.isdigit() or (not pid.isdigit()) or (not time.isdigit()):
+    # 同一scidをcntごとに並び替え
+    for scid, cnt_data_dict in scid_cnt_data_dict.items():
+        data = []
+        pid, scname = None, None
+        for cnt in sorted(cnt_data_dict.keys()):
+            if cnt == "0":
+                pid = cnt_data_dict[0]
+                scname = cnt_data_dict[2]
+                data += cnt_data_dict[cnt][1] + cnt_data_dict[cnt][3:]
+            else:
+                data += cnt_data_dict[cnt]
+
+        # error check
+        if pid is None:
             continue
+        if (not pid.isdigit()):
+            continue
+        if scname is None:
+            continue
+        if (scname in id_name_dict.keys()):
+            scname = f"{scname}-{id_name_dict[scname]}"
 
-        scname = msg_ls[3]
-        is_additional = True
-        if contains_control_characters(scname):
-            # additional information
-            scname = escape_control_characters(scname)
-        else:
-            scname = scname.decode(DECODE, errors="replace")
-            if scname.isdigit():
-                is_additional = False
-
-        other = ""
-        if len(msg_ls) >= 5:
-            for msg in msg_ls[4:]:
-                if contains_control_characters(msg):
-                    other += f"{escape_control_characters(msg)}\t"
-                else:
-                    encoded_msg = msg.decode(DECODE, errors="replace")
-                    other += f"{encoded_msg}\t"
-
-        if not pid in pid_scid_data_dict.keys():
+        # append data
+        if not (pid in pid_scid_data_dict.keys()):
             pid_scid_data_dict[pid] = {}
+        if not (scid in pid_scid_data_dict[pid].keys()):
+            pid_scid_data_dict[pid][scid] = []
+        pid_scid_data_dict[pid][scid].append(f"{scname}\t" + "\t".join(data))
 
-        if not scid in pid_scid_data_dict[pid].keys():
-            pid_scid_data_dict[pid][scid] = ""
-
-        # 二番目以降の情報のはず
-        if is_additional:
-            pid_scid_data_dict[pid][scid] += f"{scname}{other}"
-            continue
-
-        # 一番目の情報のはず
-        scinfo = ""
-        if scname in id_name_dict.keys():
-            scinfo = f"{scname}-{id_name_dict[scname]}"
-        else:
-            scinfo = f"{scname}-unknown"
-        pid_scid_data_dict[pid][scid] += f"{time}\t{scinfo}\t{other}\t"
 
 
 def process_sc(new_path_ls: list, num: int):
