@@ -206,3 +206,6 @@ def process_sc(new_path_ls: list, num: int):
     scid_cnt_data_dict.clear()
     pid_scid_data_dict.clear()
 
+if __name__ == '__main__':
+    from lib.fs import get_all_file_path_in
+    process_sc([f'./input/0/{i}.pickle' for i in range(len(get_all_file_path_in('./input/0/')))],0)
