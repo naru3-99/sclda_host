@@ -143,9 +143,11 @@ def __process_sc(filepath: str, num: int):
     # scidごとにデータを集める
     scid_cnt_data_dict = {}
     for msg_ls in msg_ls_ls:
+        if (len(msg_ls) < 2):
+            print(msg_ls)
+            continue
         scid, cnt = msg_ls[0], msg_ls[1]
         if not (scid.isdigit() and cnt.isdigit()):
-            print(msg_ls)
             continue
         if not (scid in scid_cnt_data_dict.keys()):
             scid_cnt_data_dict[scid] = {}
