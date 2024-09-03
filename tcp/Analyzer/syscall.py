@@ -159,11 +159,13 @@ def __process_sc(filepath: str, num: int):
         pid, scname = None, None
         for cnt in sorted(cnt_data_dict.keys()):
             if cnt == "0":
-                pid = cnt_data_dict[0]
-                scname = cnt_data_dict[2]
+                pid = cnt_data_dict[0].decode(DECODE, errors="replace")
+                scname = cnt_data_dict[2].decode(DECODE, errors="replace")
                 data += cnt_data_dict[cnt][1] + cnt_data_dict[cnt][3:]
             else:
                 data += cnt_data_dict[cnt]
+
+        data = [d.decode(DECODE, errors="replace") for d in data]
 
         # error check
         if pid is None:
@@ -181,7 +183,6 @@ def __process_sc(filepath: str, num: int):
         if not (scid in pid_scid_data_dict[pid].keys()):
             pid_scid_data_dict[pid][scid] = []
         pid_scid_data_dict[pid][scid].append(f"{scname}\t" + "\t".join(data))
-
 
 
 def process_sc(new_path_ls: list, num: int):
