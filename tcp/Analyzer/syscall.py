@@ -94,6 +94,7 @@ scid_cnt_data_dict = {}
 # 保存するデータを記録するための辞書
 pid_scid_data_dict = {}
 
+
 def __process_sc1(filepath: str, num: int):
     global sc_byte_str, scid_cnt_data_dict
     sc_byte_str[num] += b"".join(load_object_from_file(filepath))
@@ -144,15 +145,16 @@ def __process_sc1(filepath: str, num: int):
 
     # scidごとにデータを集める
     for msg_ls in msg_ls_ls:
-        if (len(msg_ls) < 2):
+        if len(msg_ls) < 2:
             continue
         scid = msg_ls[0].decode(DECODE, errors="replace")
-        cnt  = msg_ls[1].decode(DECODE, errors="replace")
+        cnt = msg_ls[1].decode(DECODE, errors="replace")
         if not (scid.isdigit() and cnt.isdigit()):
             continue
         if not (scid in scid_cnt_data_dict.keys()):
             scid_cnt_data_dict[scid] = {}
         scid_cnt_data_dict[scid][cnt] = msg_ls[2:]
+
 
 def __process_sc2():
     global scid_cnt_data_dict, pid_scid_data_dict
@@ -164,7 +166,7 @@ def __process_sc2():
 
         data = []
         for d in data_temp:
-            if (contains_control_characters(d)):
+            if contains_control_characters(d):
                 data.append(escape_control_characters(d))
             else:
                 data.append(d.decode(DECODE, errors="replace"))
@@ -173,16 +175,17 @@ def __process_sc2():
         other = "\t".join(data[3:])
 
         # error check
-        if (not pid.isdigit()):
+        if not pid.isdigit():
             print(pid, data)
             continue
-        if (scname in id_name_dict.keys()):
+        if scname in id_name_dict.keys():
             scname = f"{scname}-{id_name_dict[scname]}"
 
         # append data
         if not (pid in pid_scid_data_dict.keys()):
             pid_scid_data_dict[pid] = {}
         pid_scid_data_dict[pid][scid] = f"{time}\t{scname}\t{other}"
+
 
 def process_sc(new_path_ls: list, num: int):
     global pid_scid_data_dict, scid_cnt_data_dict
@@ -205,4 +208,3 @@ def process_sc(new_path_ls: list, num: int):
             save_str_to_file("\n".join(save_row_ls), save_path)
     scid_cnt_data_dict.clear()
     pid_scid_data_dict.clear()
-
