@@ -7,6 +7,7 @@ from LastPreprocess import last_analyze
 from Server.ScldaServer import server_init, QUEUE
 from lib.fs import rmrf, ensure_path_exists, get_all_file_path_in, get_all_dir_names_in
 
+import time
 from CONST import (
     INPUT_DIR,
     OUTPUT_DIR,
@@ -56,7 +57,8 @@ def main():
 
     # 取得したデータの解釈を行う
     while(QUEUE.empty()):
-        analyze()
+        # analyze()
+        time.sleep(1)
 
     # 最後の処理を行う
     last_analyze()

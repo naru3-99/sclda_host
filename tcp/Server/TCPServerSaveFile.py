@@ -39,6 +39,7 @@ class TcpServerSaveFile(TcpServer):
 
         while not self.accept_connection():
             time.sleep(1)
+        print("connected:", self._address)
 
         while True:
             try:
