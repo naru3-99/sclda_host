@@ -22,12 +22,16 @@ def last_analyze():
     dir_len = len(get_all_file_path_in(INPUT_PID_DIR))
     process_pid([f"{INPUT_PID_DIR}{p}.pickle" for p in range(dir_len)])
 
+    process_ls = []
     for d in get_all_dir_names_in(INPUT_DIR):
         if "PID" in d:
             continue
         dir_len = len(get_all_file_path_in(f"{INPUT_DIR}{d}/"))
         arg_list = [f"{INPUT_DIR}{d}/{i}.pickle" for i in range(dir_len)]
-        start_process(process_sc, arg_list, int(d))
+        p = start_process(process_sc, arg_list, int(d))
+        process_ls.append(p)
+
+    return process_ls
 
 
 if __name__ == "__main__":

@@ -151,6 +151,7 @@ def __process_sc1(filepath: str, num: int):
         cnt = msg_ls[1].decode(DECODE, errors="replace")
         if not (scid.isdigit() and cnt.isdigit()):
             continue
+        cnt = int(cnt)
         if not (scid in scid_cnt_data_dict.keys()):
             scid_cnt_data_dict[scid] = {}
         scid_cnt_data_dict[scid][cnt] = msg_ls[2:]
@@ -171,6 +172,8 @@ def __process_sc2():
             else:
                 data.append(d.decode(DECODE, errors="replace"))
 
+        if len(data) < 3:
+            continue
         pid, time, scname = data[0:3]
         other = "\t".join(data[3:])
 

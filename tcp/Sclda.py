@@ -6,7 +6,12 @@ from Analyzer.syscall import process_sc
 from LastPreprocess import last_analyze
 from Server.ScldaServer import server_init, QUEUE
 
-from lib.fs import rmrf, ensure_path_exists, get_all_file_path_in, get_all_dir_names_in
+from lib.fs import (
+    rmrf,
+    ensure_path_exists,
+    get_all_file_path_in,
+    get_all_dir_names_in,
+)
 from lib.multp import is_process_alive
 
 import time
@@ -58,19 +63,21 @@ def main():
     process_ls = server_init()
 
     # 取得したデータの解釈を行う
-    while(QUEUE.empty()):
+    while QUEUE.empty():
         # analyze()
         time.sleep(1)
     print("Guest OS invoked reboot system-call")
 
     # サーバプロセスが全パケットを保存するまで待機する
-    while(not all(not is_process_alive(p) for p in process_ls)):
+    while not all(not is_process_alive(p) for p in process_ls):
         time.sleep(1)
     print("All data was saved")
 
     # 最後の処理を行う
-    last_analyze()
-    print("All packet was preprocessed to csv fail")
+    process_ls = last_analyze()
+    while not all(not is_process_alive(p) for p in process_ls):
+        time.sleep(1)
+    print("All packet was preprocessed to csv file")
 
 
 if __name__ == "__main__":
