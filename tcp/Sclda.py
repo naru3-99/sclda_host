@@ -61,15 +61,16 @@ def main():
     while(QUEUE.empty()):
         # analyze()
         time.sleep(1)
-
     print("Guest OS invoked reboot system-call")
 
+    # サーバプロセスが全パケットを保存するまで待機する
     while(not all(not is_process_alive(p) for p in process_ls)):
         time.sleep(1)
-
     print("All data was saved")
+
     # 最後の処理を行う
     last_analyze()
+    print("All packet was preprocessed to csv fail")
 
 
 if __name__ == "__main__":
