@@ -6,8 +6,8 @@ def main():
         SSH_USERNAME, SSH_HOST, SSH_PASSWORD, SSH_KEY, SSH_PORT
     )
     print(ssh.connect_ssh())
-    print(ssh.execute_sudo("dmesg > out.txt"))
-    print(ssh.get_file('/home/naru3/out.txt','./'))
+    print(ssh.execute_sudo("dmesg > dmesg.txt"))
+    print(ssh.get_file('/home/naru3/dmesg.txt','./'))
 
 if __name__ == '__main__':
     main()
