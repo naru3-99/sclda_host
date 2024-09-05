@@ -23,6 +23,7 @@ QUEUE = mp.Queue()
 
 def server_init():
     # start pidppid server
+    process_ls = []
     pidppid_server = TcpServerSaveFile(
         SERVER_HOST,
         PIDPPID_PORT,
@@ -32,7 +33,7 @@ def server_init():
         INPUT_PID_DIR,
         QUEUE,
     )
-    start_process(pidppid_server.main)
+    process_ls.append(start_process(pidppid_server.main))
     time.sleep(TIME_TO_WAIT_INIT)
 
     # start syscall server
@@ -49,5 +50,7 @@ def server_init():
         for i in range(PORT_NUMBER)
     ]
     for server in syscall_server_ls:
-        start_process(server.main)
+        process_ls.append(start_process(server.main))
         time.sleep(TIME_TO_WAIT_INIT)
+
+    return process_ls

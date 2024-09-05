@@ -5,8 +5,9 @@ from Analyzer.pid import process_pid
 from Analyzer.syscall import process_sc
 from LastPreprocess import last_analyze
 from Server.ScldaServer import server_init, QUEUE
+
 from lib.fs import rmrf, ensure_path_exists, get_all_file_path_in, get_all_dir_names_in
-from lib.multp import are_all_processes_terminated
+from lib.multp import is_process_alive
 
 import time
 from CONST import (
@@ -54,7 +55,7 @@ def main():
     ensure_path_exists(OUTPUT_DIR)
 
     # サーバの初期化
-    server_init()
+    process_ls = server_init()
 
     # 取得したデータの解釈を行う
     while(QUEUE.empty()):
@@ -63,7 +64,7 @@ def main():
 
     print("Guest OS invoked reboot system-call")
 
-    while(not are_all_processes_terminated()):
+    while(not all(not is_process_alive(p) for p in process_ls)):
         time.sleep(1)
 
     print("All data was saved")
