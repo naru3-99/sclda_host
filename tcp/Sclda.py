@@ -6,6 +6,7 @@ from Analyzer.syscall import process_sc
 from LastPreprocess import last_analyze
 from Server.ScldaServer import server_init, QUEUE
 from lib.fs import rmrf, ensure_path_exists, get_all_file_path_in, get_all_dir_names_in
+from lib.multp import are_all_processes_terminated
 
 import time
 from CONST import (
@@ -60,6 +61,12 @@ def main():
         # analyze()
         time.sleep(1)
 
+    print("Guest OS invoked reboot system-call")
+
+    while(not are_all_processes_terminated()):
+        time.sleep(1)
+
+    print("All data was saved")
     # 最後の処理を行う
     last_analyze()
 
